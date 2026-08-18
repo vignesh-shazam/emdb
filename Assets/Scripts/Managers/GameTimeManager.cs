@@ -10,13 +10,16 @@ public class GameTimeManager : MonoBehaviour
     [SerializeField, Range(0, 59)] private int currentMinute = 0;
 
     [Header("Time Speed")]
-    [SerializeField] private float gameMinutesPerRealSecond = 1f;
+    [SerializeField, Range(0.1f, 10f)]
+    private float gameMinutesPerRealSecond = 1f;
+
+    private float minuteAccumulator;
 
     public int CurrentDay => currentDay;
     public int CurrentHour => currentHour;
     public int CurrentMinute => currentMinute;
 
-    private float minuteAccumulator;
+    public bool IsPaused { get; private set; }
 
     private void Awake()
     {
@@ -32,6 +35,11 @@ public class GameTimeManager : MonoBehaviour
 
     private void Update()
     {
+        if (IsPaused)
+        {
+            return;
+        }
+
         AdvanceTime();
     }
 
@@ -66,5 +74,17 @@ public class GameTimeManager : MonoBehaviour
                 currentDay++;
             }
         }
+    }
+
+    [ContextMenu("Pause Time")]
+    public void PauseTime()
+    {
+        IsPaused = true;
+    }
+
+    [ContextMenu("Resume Time")]
+    public void ResumeTime()
+    {
+        IsPaused = false;
     }
 }
