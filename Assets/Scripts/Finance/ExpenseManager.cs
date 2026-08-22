@@ -1,8 +1,15 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class ExpenseManager : MonoBehaviour
 {
     public static ExpenseManager Instance { get; private set; }
+
+    private readonly List<ExpenseTransaction> transactions =
+        new List<ExpenseTransaction>();
+
+    public IReadOnlyList<ExpenseTransaction> Transactions =>
+        transactions;
 
     private void Awake()
     {
@@ -74,17 +81,60 @@ public class ExpenseManager : MonoBehaviour
         bool success =
             MoneyManager.Instance.RemoveMoney(amount);
 
-        if (success)
+        if (!success)
         {
-            Debug.Log(
-                $"Expense completed | " +
-                $"Category: {category} | " +
-                $"Amount: Rs. {amount:N0} | " +
-                $"Remaining: Rs. " +
-                $"{MoneyManager.Instance.CurrentMoney:N0}"
-            );
+            return false;
         }
 
-        return success;
+        RecordTransaction(
+            amount,
+            category
+        );
+
+        Debug.Log(
+            $"Expense completed | " +
+            $"Category: {category} | " +
+            $"Amount: Rs. {amount:N0} | " +
+            $"Remaining: Rs. " +
+            $"{MoneyManager.Instance.CurrentMoney:N0}"
+        );
+
+        return true;
+    }
+
+    private void RecordTransaction(
+        int amount,
+        ExpenseCategory category)
+    {
+        if (GameTimeManager.Instance == null)
+        {
+            Debug.LogWarning(
+                "ExpenseManager: GameTimeManager not found. " +
+                "Transaction will use default time values."
+            );
+
+            transactions.Add(
+                new ExpenseTransaction(
+                    category,
+                    amount,
+                    0,
+                    0,
+                    0
+                )
+            );
+
+            return;
+        }
+
+        ExpenseTransaction transaction =
+            new ExpenseTransaction(
+                category,
+                amount,
+                GameTimeManager.Instance.CurrentDay,
+                GameTimeManager.Instance.CurrentHour,
+                GameTimeManager.Instance.CurrentMinute
+            );
+
+        transactions.Add(transaction);
     }
 }
