@@ -17,6 +17,11 @@ public class ExpenseManager : MonoBehaviour
 
     public bool CanAfford(int amount)
     {
+        if (amount <= 0)
+        {
+            return false;
+        }
+
         if (MoneyManager.Instance == null)
         {
             Debug.LogError(
@@ -30,6 +35,13 @@ public class ExpenseManager : MonoBehaviour
     }
 
     public bool Spend(int amount)
+    {
+        return Spend(amount, ExpenseCategory.Other);
+    }
+
+    public bool Spend(
+        int amount,
+        ExpenseCategory category)
     {
         if (amount <= 0)
         {
@@ -52,7 +64,7 @@ public class ExpenseManager : MonoBehaviour
         if (!MoneyManager.Instance.CanAfford(amount))
         {
             Debug.Log(
-                $"Expense rejected. " +
+                $"Expense rejected: {category}. " +
                 $"Insufficient funds for Rs. {amount:N0}."
             );
 
@@ -65,9 +77,11 @@ public class ExpenseManager : MonoBehaviour
         if (success)
         {
             Debug.Log(
-                $"Expense completed: Rs. {amount:N0}. " +
-                $"Remaining balance: " +
-                $"Rs. {MoneyManager.Instance.CurrentMoney:N0}"
+                $"Expense completed | " +
+                $"Category: {category} | " +
+                $"Amount: Rs. {amount:N0} | " +
+                $"Remaining: Rs. " +
+                $"{MoneyManager.Instance.CurrentMoney:N0}"
             );
         }
 
