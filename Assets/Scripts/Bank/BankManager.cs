@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class BankManager : MonoBehaviour
@@ -10,11 +11,17 @@ public class BankManager : MonoBehaviour
 
     private BankAccount bankAccount;
 
+    private readonly List<BankTransaction> transactions =
+        new List<BankTransaction>();
+
     public string AccountNumber =>
         bankAccount.AccountNumber;
 
     public int Balance =>
         bankAccount.Balance;
+
+    public IReadOnlyList<BankTransaction> Transactions =>
+        transactions;
 
     private void Awake()
     {
@@ -77,6 +84,11 @@ public class BankManager : MonoBehaviour
 
         bankAccount.Balance += amount;
 
+        RecordTransaction(
+            BankTransaction.TransactionType.Deposit,
+            amount
+        );
+
         Debug.Log(
             $"Deposit successful | " +
             $"Amount: Rs. {amount:N0} | " +
@@ -120,6 +132,11 @@ public class BankManager : MonoBehaviour
 
         MoneyManager.Instance.AddMoney(amount);
 
+        RecordTransaction(
+            BankTransaction.TransactionType.Withdraw,
+            amount
+        );
+
         Debug.Log(
             $"Withdraw successful | " +
             $"Amount: Rs. {amount:N0} | " +
@@ -127,5 +144,26 @@ public class BankManager : MonoBehaviour
         );
 
         return true;
+    }
+
+    private void RecordTransaction(
+        BankTransaction.TransactionType type,
+        int amount)
+    {
+        BankTransaction transaction =
+            new BankTransaction(
+                type,
+                amount,
+                bankAccount.Balance
+            );
+
+        transactions.Add(transaction);
+
+        Debug.Log(
+            $"Bank transaction recorded | " +
+            $"Type: {type} | " +
+            $"Amount: Rs. {amount:N0} | " +
+            $"Balance: Rs. {bankAccount.Balance:N0}"
+        );
     }
 }
