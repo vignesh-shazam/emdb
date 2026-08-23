@@ -1032,9 +1032,13 @@ MonoBehaviour:
   - job: 5
     requiredJob: 3
     requirementMessage: ' Must work as a Shop Assistant first.'
-  - job: 0
-    requiredJob: 0
-    requirementMessage: 
+  - job: 3
+    requiredJob: 1
+    requirementMessage: Must have previous work experience.
+  startingExperience: 0
+  startingCareerLevel: 1
+  experiencePerWork: 25
+  baseExperienceRequired: 100
 --- !u!4 &524074651
 Transform:
   m_ObjectHideFlags: 0
