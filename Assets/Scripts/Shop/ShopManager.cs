@@ -107,6 +107,15 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
+        if (InventoryManager.Instance == null)
+        {
+            Debug.LogError(
+                "Buy failed: InventoryManager not found."
+            );
+
+            return false;
+        }
+
         if (!MoneyManager.Instance.CanAfford(
                 item.BuyPrice))
         {
@@ -123,13 +132,37 @@ public class ShopManager : MonoBehaviour
             item.BuyPrice
         );
 
+        bool inventoryAdded =
+            InventoryManager.Instance.AddItem(
+                item.ItemId,
+                item.ItemName,
+                1
+            );
+
+        if (!inventoryAdded)
+        {
+            MoneyManager.Instance.AddMoney(
+                item.BuyPrice
+            );
+
+            Debug.LogWarning(
+                $"Buy failed: Could not add " +
+                $"{item.ItemName} to inventory."
+            );
+
+            return false;
+        }
+
         AddPurchasedItem(item.ItemId);
 
         Debug.Log(
             $"Purchase successful | " +
             $"Item: {item.ItemName} | " +
             $"Price: Rs. {item.BuyPrice:N0} | " +
-            $"Quantity: {GetPurchasedQuantity(item.ItemId)}"
+            $"Shop Quantity: " +
+            $"{GetPurchasedQuantity(item.ItemId)} | " +
+            $"Inventory Quantity: " +
+            $"{InventoryManager.Instance.GetQuantity(item.ItemId)}"
         );
 
         return true;
@@ -170,6 +203,31 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
+        if (InventoryManager.Instance == null)
+        {
+            Debug.LogError(
+                "Sell failed: InventoryManager not found."
+            );
+
+            return false;
+        }
+
+        bool inventoryRemoved =
+            InventoryManager.Instance.RemoveItem(
+                item.ItemId,
+                1
+            );
+
+        if (!inventoryRemoved)
+        {
+            Debug.LogWarning(
+                $"Sell failed: Could not remove " +
+                $"{item.ItemName} from inventory."
+            );
+
+            return false;
+        }
+
         RemovePurchasedItem(item.ItemId);
 
         MoneyManager.Instance.AddMoney(
@@ -180,7 +238,10 @@ public class ShopManager : MonoBehaviour
             $"Sale successful | " +
             $"Item: {item.ItemName} | " +
             $"Price: Rs. {item.SellPrice:N0} | " +
-            $"Quantity: {GetPurchasedQuantity(item.ItemId)}"
+            $"Shop Quantity: " +
+            $"{GetPurchasedQuantity(item.ItemId)} | " +
+            $"Inventory Quantity: " +
+            $"{InventoryManager.Instance.GetQuantity(item.ItemId)}"
         );
 
         return true;
