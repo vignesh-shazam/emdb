@@ -7,10 +7,12 @@ public class InventoryUI : MonoBehaviour
     [Header("Bread")]
     [SerializeField] private TMP_Text breadNameText;
     [SerializeField] private TMP_Text breadQuantityText;
+    [SerializeField] private Button breadUseButton;
 
     [Header("Milk")]
     [SerializeField] private TMP_Text milkNameText;
     [SerializeField] private TMP_Text milkQuantityText;
+    [SerializeField] private Button milkUseButton;
 
     [Header("Tool Kit")]
     [SerializeField] private TMP_Text toolKitNameText;
@@ -35,7 +37,25 @@ public class InventoryUI : MonoBehaviour
         if (closeButton != null)
         {
             closeButton.onClick.RemoveAllListeners();
-            closeButton.onClick.AddListener(CloseInventory);
+            closeButton.onClick.AddListener(
+                CloseInventory
+            );
+        }
+
+        if (breadUseButton != null)
+        {
+            breadUseButton.onClick.RemoveAllListeners();
+            breadUseButton.onClick.AddListener(
+                UseBread
+            );
+        }
+
+        if (milkUseButton != null)
+        {
+            milkUseButton.onClick.RemoveAllListeners();
+            milkUseButton.onClick.AddListener(
+                UseMilk
+            );
         }
     }
 
@@ -54,21 +74,24 @@ public class InventoryUI : MonoBehaviour
             "food_001",
             "Bread",
             breadNameText,
-            breadQuantityText
+            breadQuantityText,
+            breadUseButton
         );
 
         UpdateItemUI(
             "food_002",
             "Milk",
             milkNameText,
-            milkQuantityText
+            milkQuantityText,
+            milkUseButton
         );
 
         UpdateItemUI(
             "tool_001",
             "Tool Kit",
             toolKitNameText,
-            toolKitQuantityText
+            toolKitQuantityText,
+            null
         );
     }
 
@@ -76,7 +99,8 @@ public class InventoryUI : MonoBehaviour
         string itemId,
         string defaultItemName,
         TMP_Text nameText,
-        TMP_Text quantityText)
+        TMP_Text quantityText,
+        Button useButton)
     {
         if (nameText != null)
         {
@@ -95,6 +119,46 @@ public class InventoryUI : MonoBehaviour
 
         quantityText.text =
             $"Qty: {quantity}";
+
+        if (useButton != null)
+        {
+            useButton.interactable =
+                quantity > 0;
+        }
+    }
+
+    private void UseBread()
+    {
+        UseItem("food_001");
+    }
+
+    private void UseMilk()
+    {
+        UseItem("food_002");
+    }
+
+    private void UseItem(string itemId)
+    {
+        if (ItemUsageManager.Instance == null)
+        {
+            Debug.LogError(
+                "InventoryUI: ItemUsageManager not found."
+            );
+
+            return;
+        }
+
+        bool success =
+            ItemUsageManager.Instance.UseItem(
+                itemId
+            );
+
+        if (!success)
+        {
+            return;
+        }
+
+        RefreshUI();
     }
 
     public void CloseInventory()

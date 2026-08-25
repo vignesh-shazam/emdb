@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class PlayerLifeManager : MonoBehaviour
 {
+    public static PlayerLifeManager Instance { get; private set; }
+
     [Header("Health")]
     [SerializeField] private float maxHealth = 100f;
     [SerializeField] private float currentHealth = 100f;
@@ -26,6 +28,14 @@ public class PlayerLifeManager : MonoBehaviour
 
     private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+
         currentHealth = Mathf.Clamp(
             currentHealth,
             0f,
