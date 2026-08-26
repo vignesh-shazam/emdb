@@ -12,6 +12,10 @@ public class CustomerUI : MonoBehaviour
     [Header("Actions")]
     [SerializeField] private Button serveCustomerButton;
 
+    // =========================
+    // ENABLE
+    // =========================
+
     private void OnEnable()
     {
         CustomerManager.OnCustomerListChanged +=
@@ -20,6 +24,10 @@ public class CustomerUI : MonoBehaviour
         InventoryManager.OnInventoryChanged +=
             RefreshUI;
     }
+
+    // =========================
+    // DISABLE
+    // =========================
 
     private void OnDisable()
     {
@@ -30,12 +38,29 @@ public class CustomerUI : MonoBehaviour
             RefreshUI;
     }
 
+    // =========================
+    // START
+    // =========================
+
     private void Start()
     {
         InitializeUI();
 
         RefreshUI();
     }
+
+    // =========================
+    // UPDATE
+    // =========================
+
+    private void Update()
+    {
+        RefreshPatienceUI();
+    }
+
+    // =========================
+    // INITIALIZE
+    // =========================
 
     private void InitializeUI()
     {
@@ -48,6 +73,10 @@ public class CustomerUI : MonoBehaviour
             );
         }
     }
+
+    // =========================
+    // REFRESH UI
+    // =========================
 
     public void RefreshUI()
     {
@@ -63,6 +92,18 @@ public class CustomerUI : MonoBehaviour
             return;
         }
 
+        if (CustomerManager.Instance.ActiveCustomers == null)
+        {
+            ClearUI();
+            return;
+        }
+
+        if (CustomerManager.Instance.ActiveCustomers.Count <= 0)
+        {
+            ClearUI();
+            return;
+        }
+
         Customer customer =
             CustomerManager.Instance.ActiveCustomers[0];
 
@@ -72,11 +113,19 @@ public class CustomerUI : MonoBehaviour
             return;
         }
 
+        // =========================
+        // CUSTOMER NAME
+        // =========================
+
         if (customerNameText != null)
         {
             customerNameText.text =
                 customer.CustomerName;
         }
+
+        // =========================
+        // CUSTOMER REQUEST
+        // =========================
 
         if (customerRequestText != null)
         {
@@ -85,32 +134,100 @@ public class CustomerUI : MonoBehaviour
                 $"{customer.RequestedQuantity}";
         }
 
-        if (customerPatienceText != null)
+        // =========================
+        // PATIENCE
+        // =========================
+
+        RefreshPatienceUI();
+
+        // =========================
+        // SERVE BUTTON
+        // =========================
+
+        UpdateServeButton(
+            customer
+        );
+    }
+
+    // =========================
+    // REFRESH PATIENCE
+    // =========================
+
+    private void RefreshPatienceUI()
+    {
+        if (customerPatienceText == null)
+        {
+            return;
+        }
+
+        if (CustomerManager.Instance == null)
+        {
+            return;
+        }
+
+        if (CustomerManager.Instance.CustomerCount <= 0)
         {
             customerPatienceText.text =
-                $"Patience: {customer.Patience:0}";
+                "Patience: 0";
+
+            return;
         }
 
-        if (serveCustomerButton != null)
+        if (CustomerManager.Instance.ActiveCustomers == null)
         {
-            bool canServe = false;
-
-            if (InventoryManager.Instance != null)
-            {
-                int availableQuantity =
-                    InventoryManager.Instance.GetQuantity(
-                        customer.RequestedItemId
-                    );
-
-                canServe =
-                    availableQuantity >=
-                    customer.RequestedQuantity;
-            }
-
-            serveCustomerButton.interactable =
-                canServe;
+            return;
         }
+
+        if (CustomerManager.Instance.ActiveCustomers.Count <= 0)
+        {
+            return;
+        }
+
+        Customer customer =
+            CustomerManager.Instance.ActiveCustomers[0];
+
+        if (customer == null)
+        {
+            return;
+        }
+
+        customerPatienceText.text =
+            $"Patience: {customer.Patience:0}";
     }
+
+    // =========================
+    // SERVE BUTTON
+    // =========================
+
+    private void UpdateServeButton(
+        Customer customer)
+    {
+        if (serveCustomerButton == null)
+        {
+            return;
+        }
+
+        bool canServe = false;
+
+        if (InventoryManager.Instance != null)
+        {
+            int availableQuantity =
+                InventoryManager.Instance.GetQuantity(
+                    customer.RequestedItemId
+                );
+
+            canServe =
+                availableQuantity >=
+                customer.RequestedQuantity;
+        }
+
+        serveCustomerButton.interactable =
+            canServe;
+    }
+
+    // =========================
+    // CLEAR UI
+    // =========================
 
     private void ClearUI()
     {
@@ -139,6 +256,10 @@ public class CustomerUI : MonoBehaviour
         }
     }
 
+    // =========================
+    // SERVE CUSTOMER
+    // =========================
+
     private void ServeCustomer()
     {
         if (CustomerManager.Instance == null)
@@ -159,6 +280,16 @@ public class CustomerUI : MonoBehaviour
             return;
         }
 
+        if (CustomerManager.Instance.ActiveCustomers == null)
+        {
+            return;
+        }
+
+        if (CustomerManager.Instance.ActiveCustomers.Count <= 0)
+        {
+            return;
+        }
+
         Customer customer =
             CustomerManager.Instance.ActiveCustomers[0];
 
@@ -174,6 +305,7 @@ public class CustomerUI : MonoBehaviour
 
         if (!success)
         {
+            RefreshUI();
             return;
         }
 

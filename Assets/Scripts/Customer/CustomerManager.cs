@@ -19,6 +19,10 @@ public class CustomerManager : MonoBehaviour
     public int CustomerCount =>
         activeCustomers.Count;
 
+    // =========================
+    // AWAKE
+    // =========================
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -31,6 +35,10 @@ public class CustomerManager : MonoBehaviour
 
         InitializeCustomers();
     }
+
+    // =========================
+    // INITIALIZE
+    // =========================
 
     private void InitializeCustomers()
     {
@@ -59,6 +67,11 @@ public class CustomerManager : MonoBehaviour
 
         foreach (Customer customer in activeCustomers)
         {
+            if (customer == null)
+            {
+                continue;
+            }
+
             if (customer.CustomerId == customerId)
             {
                 return customer;
@@ -141,7 +154,8 @@ public class CustomerManager : MonoBehaviour
         Debug.Log(
             $"Customer removed | " +
             $"Name: {customer.CustomerName} | " +
-            $"ID: {customer.CustomerId}"
+            $"ID: {customer.CustomerId} | " +
+            $"Result: {customer.Result}"
         );
 
         OnCustomerListChanged?.Invoke();
@@ -225,6 +239,16 @@ public class CustomerManager : MonoBehaviour
             return null;
         }
 
+        if (quantity <= 0)
+        {
+            Debug.LogWarning(
+                "Create customer failed: " +
+                "Quantity must be greater than zero."
+            );
+
+            return null;
+        }
+
         Customer customer =
             new Customer(
                 customerId,
@@ -247,7 +271,8 @@ public class CustomerManager : MonoBehaviour
             $"Customer request created | " +
             $"Customer: {customer.CustomerName} | " +
             $"Request: {customer.RequestedItemName} x" +
-            $"{customer.RequestedQuantity}"
+            $"{customer.RequestedQuantity} | " +
+            $"Result: {customer.Result}"
         );
 
         return customer;
@@ -272,6 +297,24 @@ public class CustomerManager : MonoBehaviour
             return false;
         }
 
+        // =========================
+        // VALIDATE REQUEST
+        // =========================
+
+        if (!customer.HasValidRequest())
+        {
+            Debug.LogWarning(
+                $"Serve failed: Invalid customer request. " +
+                $"Customer: {customer.CustomerName}"
+            );
+
+            return false;
+        }
+
+        // =========================
+        // INVENTORY MANAGER
+        // =========================
+
         if (InventoryManager.Instance == null)
         {
             Debug.LogError(
@@ -280,6 +323,10 @@ public class CustomerManager : MonoBehaviour
 
             return false;
         }
+
+        // =========================
+        // SHOP MANAGER
+        // =========================
 
         if (ShopManager.Instance == null)
         {
@@ -290,6 +337,10 @@ public class CustomerManager : MonoBehaviour
             return false;
         }
 
+        // =========================
+        // MONEY MANAGER
+        // =========================
+
         if (MoneyManager.Instance == null)
         {
             Debug.LogError(
@@ -298,6 +349,10 @@ public class CustomerManager : MonoBehaviour
 
             return false;
         }
+
+        // =========================
+        // CHECK INVENTORY
+        // =========================
 
         int availableQuantity =
             InventoryManager.Instance.GetQuantity(
@@ -317,6 +372,10 @@ public class CustomerManager : MonoBehaviour
             return false;
         }
 
+        // =========================
+        // GET SHOP ITEM
+        // =========================
+
         ShopItem shopItem =
             ShopManager.Instance.GetItem(
                 customer.RequestedItemId
@@ -331,6 +390,10 @@ public class CustomerManager : MonoBehaviour
 
             return false;
         }
+
+        // =========================
+        // REMOVE REQUESTED ITEMS
+        // =========================
 
         bool removed =
             InventoryManager.Instance.RemoveItem(
@@ -348,21 +411,72 @@ public class CustomerManager : MonoBehaviour
             return false;
         }
 
+        // =========================
+        // CALCULATE PAYMENT
+        // =========================
+
         int payment =
             shopItem.SellPrice *
             customer.RequestedQuantity;
+
+        // =========================
+        // ADD PAYMENT
+        // =========================
 
         MoneyManager.Instance.AddMoney(
             payment
         );
 
+        // =========================
+        // COMPLETE PURCHASE
+        // =========================
+
+        ShopManager.Instance
+            .CompleteCurrentCustomerPurchase();
+
+        // =========================
+        // MARK AS SERVED
+        // =========================
+
+        customer.MarkServed();
+
+        // =========================
+        // UPDATE SATISFACTION
+        // =========================
+
+        if (CustomerSatisfactionManager.Instance != null)
+        {
+            CustomerSatisfactionManager.Instance
+                .CustomerServed(customer);
+        }
+
+        // =========================
+        // GENERATE TIP
+        // =========================
+
+        if (CustomerTipManager.Instance != null)
+        {
+            CustomerTipManager.Instance
+                .AddTip(customer);
+        }
+
+        // =========================
+        // SUCCESS LOG
+        // =========================
+
         Debug.Log(
             $"Customer served successfully | " +
             $"Customer: {customer.CustomerName} | " +
+            $"ID: {customer.CustomerId} | " +
             $"Item: {customer.RequestedItemName} x" +
             $"{customer.RequestedQuantity} | " +
-            $"Payment: Rs. {payment:N0}"
+            $"Payment: Rs. {payment:N0} | " +
+            $"Result: {customer.Result}"
         );
+
+        // =========================
+        // REMOVE CUSTOMER
+        // =========================
 
         RemoveCustomer(customerId);
 

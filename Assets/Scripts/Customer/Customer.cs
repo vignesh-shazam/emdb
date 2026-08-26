@@ -3,6 +3,13 @@ using System;
 [Serializable]
 public class Customer
 {
+    public enum CustomerResult
+    {
+        None,
+        Served,
+        Left
+    }
+
     public string CustomerId { get; private set; }
 
     public string CustomerName { get; private set; }
@@ -10,6 +17,8 @@ public class Customer
     public CustomerRequest Request { get; private set; }
 
     public float Patience { get; private set; }
+
+    public CustomerResult Result { get; private set; }
 
     // =========================
     // REQUEST COMPATIBILITY
@@ -54,6 +63,9 @@ public class Customer
             );
 
         Patience = patience;
+
+        Result =
+            CustomerResult.None;
     }
 
     // =========================
@@ -88,5 +100,33 @@ public class Customer
     public bool IsPatient()
     {
         return Patience > 0f;
+    }
+
+    // =========================
+    // RESULT
+    // =========================
+
+    public void MarkServed()
+    {
+        Result =
+            CustomerResult.Served;
+    }
+
+    public void MarkLeft()
+    {
+        Result =
+            CustomerResult.Left;
+    }
+
+    public bool WasServed()
+    {
+        return Result ==
+               CustomerResult.Served;
+    }
+
+    public bool LeftWithoutService()
+    {
+        return Result ==
+               CustomerResult.Left;
     }
 }
