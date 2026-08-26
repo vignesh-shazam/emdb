@@ -10,9 +10,6 @@ public class ShopManager : MonoBehaviour
     private List<ShopItem> shopItems =
         new List<ShopItem>();
 
-    private readonly Dictionary<string, int> purchasedItems =
-        new Dictionary<string, int>();
-
     public IReadOnlyList<ShopItem> ShopItems =>
         shopItems;
 
@@ -29,8 +26,18 @@ public class ShopManager : MonoBehaviour
         InitializeShop();
     }
 
+    // =========================
+    // INITIALIZE SHOP
+    // =========================
+
     private void InitializeShop()
     {
+        if (shopItems == null)
+        {
+            shopItems =
+                new List<ShopItem>();
+        }
+
         if (shopItems.Count == 0)
         {
             shopItems.Add(
@@ -62,10 +69,14 @@ public class ShopManager : MonoBehaviour
         }
 
         Debug.Log(
-            $"Shop initialized | " +
-            $"Items available: {shopItems.Count}"
+            "Shop initialized | Items available: " +
+            shopItems.Count
         );
     }
+
+    // =========================
+    // GET ITEM
+    // =========================
 
     public ShopItem GetItem(string itemId)
     {
@@ -85,14 +96,20 @@ public class ShopManager : MonoBehaviour
         return null;
     }
 
+    // =========================
+    // BUY ITEM
+    // =========================
+
     public bool BuyItem(string itemId)
     {
-        ShopItem item = GetItem(itemId);
+        ShopItem item =
+            GetItem(itemId);
 
         if (item == null)
         {
             Debug.LogWarning(
-                $"Buy failed: Item not found. ID: {itemId}"
+                "Buy failed: Item not found. ID: " +
+                itemId
             );
 
             return false;
@@ -120,18 +137,17 @@ public class ShopManager : MonoBehaviour
                 item.BuyPrice))
         {
             Debug.LogWarning(
-                $"Buy failed: Insufficient money. " +
-                $"Item: {item.ItemName} | " +
-                $"Required: Rs. {item.BuyPrice:N0}"
+                "Buy failed: Insufficient money. " +
+                "Item: " +
+                item.ItemName +
+                " | Required: Rs. " +
+                item.BuyPrice.ToString("N0")
             );
 
             return false;
         }
 
-        MoneyManager.Instance.RemoveMoney(
-            item.BuyPrice
-        );
-
+        // Add item to inventory first.
         bool inventoryAdded =
             InventoryManager.Instance.AddItem(
                 item.ItemId,
@@ -141,54 +157,52 @@ public class ShopManager : MonoBehaviour
 
         if (!inventoryAdded)
         {
-            MoneyManager.Instance.AddMoney(
-                item.BuyPrice
-            );
-
             Debug.LogWarning(
-                $"Buy failed: Could not add " +
-                $"{item.ItemName} to inventory."
+                "Buy failed: Could not add " +
+                item.ItemName +
+                " to inventory."
             );
 
             return false;
         }
 
-        AddPurchasedItem(item.ItemId);
+        // Remove money only after inventory succeeds.
+        MoneyManager.Instance.RemoveMoney(
+            item.BuyPrice
+        );
+
+        int inventoryQuantity =
+            InventoryManager.Instance.GetQuantity(
+                item.ItemId
+            );
 
         Debug.Log(
-            $"Purchase successful | " +
-            $"Item: {item.ItemName} | " +
-            $"Price: Rs. {item.BuyPrice:N0} | " +
-            $"Shop Quantity: " +
-            $"{GetPurchasedQuantity(item.ItemId)} | " +
-            $"Inventory Quantity: " +
-            $"{InventoryManager.Instance.GetQuantity(item.ItemId)}"
+            "Purchase successful | " +
+            "Item: " +
+            item.ItemName +
+            " | Price: Rs. " +
+            item.BuyPrice.ToString("N0") +
+            " | Inventory Quantity: " +
+            inventoryQuantity
         );
 
         return true;
     }
 
+    // =========================
+    // SELL ITEM
+    // =========================
+
     public bool SellItem(string itemId)
     {
-        ShopItem item = GetItem(itemId);
+        ShopItem item =
+            GetItem(itemId);
 
         if (item == null)
         {
             Debug.LogWarning(
-                $"Sell failed: Item not found. ID: {itemId}"
-            );
-
-            return false;
-        }
-
-        int currentQuantity =
-            GetPurchasedQuantity(itemId);
-
-        if (currentQuantity <= 0)
-        {
-            Debug.LogWarning(
-                $"Sell failed: Player does not own " +
-                $"{item.ItemName}."
+                "Sell failed: Item not found. ID: " +
+                itemId
             );
 
             return false;
@@ -212,6 +226,23 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
+        // InventoryManager is the source of truth.
+        int inventoryQuantity =
+            InventoryManager.Instance.GetQuantity(
+                item.ItemId
+            );
+
+        if (inventoryQuantity <= 0)
+        {
+            Debug.LogWarning(
+                "Sell failed: Player does not own " +
+                item.ItemName +
+                "."
+            );
+
+            return false;
+        }
+
         bool inventoryRemoved =
             InventoryManager.Instance.RemoveItem(
                 item.ItemId,
@@ -221,76 +252,49 @@ public class ShopManager : MonoBehaviour
         if (!inventoryRemoved)
         {
             Debug.LogWarning(
-                $"Sell failed: Could not remove " +
-                $"{item.ItemName} from inventory."
+                "Sell failed: Could not remove " +
+                item.ItemName +
+                " from inventory."
             );
 
             return false;
         }
 
-        RemovePurchasedItem(item.ItemId);
-
         MoneyManager.Instance.AddMoney(
             item.SellPrice
         );
 
+        int remainingQuantity =
+            InventoryManager.Instance.GetQuantity(
+                item.ItemId
+            );
+
         Debug.Log(
-            $"Sale successful | " +
-            $"Item: {item.ItemName} | " +
-            $"Price: Rs. {item.SellPrice:N0} | " +
-            $"Shop Quantity: " +
-            $"{GetPurchasedQuantity(item.ItemId)} | " +
-            $"Inventory Quantity: " +
-            $"{InventoryManager.Instance.GetQuantity(item.ItemId)}"
+            "Sale successful | " +
+            "Item: " +
+            item.ItemName +
+            " | Price: Rs. " +
+            item.SellPrice.ToString("N0") +
+            " | Inventory Quantity: " +
+            remainingQuantity
         );
 
         return true;
     }
 
-    private void AddPurchasedItem(string itemId)
-    {
-        if (purchasedItems.ContainsKey(itemId))
-        {
-            purchasedItems[itemId]++;
-        }
-        else
-        {
-            purchasedItems.Add(
-                itemId,
-                1
-            );
-        }
-    }
-
-    private void RemovePurchasedItem(string itemId)
-    {
-        if (!purchasedItems.ContainsKey(itemId))
-        {
-            return;
-        }
-
-        purchasedItems[itemId]--;
-
-        if (purchasedItems[itemId] <= 0)
-        {
-            purchasedItems.Remove(itemId);
-        }
-    }
+    // =========================
+    // PLAYER QUANTITY
+    // =========================
 
     public int GetPurchasedQuantity(string itemId)
     {
-        if (string.IsNullOrWhiteSpace(itemId))
+        if (InventoryManager.Instance == null)
         {
             return 0;
         }
 
-        if (purchasedItems.TryGetValue(
-                itemId,
-                out int quantity))
-        {
-            return quantity;
-        }
-
-        return 0;
+        return InventoryManager.Instance.GetQuantity(
+            itemId
+        );
     }
 }

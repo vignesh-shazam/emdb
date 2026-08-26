@@ -31,13 +31,6 @@ public class CustomerSpawner : MonoBehaviour
     [Header("Customer ID")]
     [SerializeField] private int nextCustomerNumber = 1;
 
-    [Header("Default Request")]
-    [SerializeField] private string requestedItemId = "food_001";
-
-    [SerializeField] private string requestedItemName = "Bread";
-
-    [SerializeField] private int requestedQuantity = 1;
-
     [Header("Patience")]
     [SerializeField] private float patience = 100f;
 
@@ -117,6 +110,16 @@ public class CustomerSpawner : MonoBehaviour
             return;
         }
 
+        if (CustomerRequestPool.Instance == null)
+        {
+            Debug.LogError(
+                "Customer spawn failed: " +
+                "CustomerRequestPool not found."
+            );
+
+            return;
+        }
+
         // =========================
         // CREATE ID
         // =========================
@@ -130,6 +133,24 @@ public class CustomerSpawner : MonoBehaviour
 
         string newCustomerName =
             GetNextCustomerName();
+
+        // =========================
+        // CREATE REQUEST
+        // =========================
+
+        CustomerRequest request =
+            CustomerRequestPool.Instance
+                .GetRandomRequest();
+
+        if (request == null)
+        {
+            Debug.LogError(
+                "Customer spawn failed: " +
+                "Could not create customer request."
+            );
+
+            return;
+        }
 
         // =========================
         // SPAWN POSITION
@@ -169,9 +190,9 @@ public class CustomerSpawner : MonoBehaviour
             CustomerManager.Instance.CreateCustomer(
                 currentCustomerId,
                 newCustomerName,
-                requestedItemId,
-                requestedItemName,
-                requestedQuantity,
+                request.ItemId,
+                request.ItemName,
+                request.Quantity,
                 patience
             );
 
@@ -211,10 +232,6 @@ public class CustomerSpawner : MonoBehaviour
             return;
         }
 
-        // =========================
-        // CURRENT CUSTOMER
-        // =========================
-
         if (currentCustomerObject != null)
         {
             bool customerStillExists =
@@ -231,10 +248,6 @@ public class CustomerSpawner : MonoBehaviour
 
             return;
         }
-
-        // =========================
-        // NO CUSTOMER
-        // =========================
 
         if (!waitingForNextCustomer &&
             CustomerManager.Instance.CustomerCount == 0)
@@ -282,7 +295,7 @@ public class CustomerSpawner : MonoBehaviour
     }
 
     // =========================
-    // CREATE ORDERED CUSTOMER ID
+    // CREATE CUSTOMER ID
     // =========================
 
     private string CreateCustomerId()

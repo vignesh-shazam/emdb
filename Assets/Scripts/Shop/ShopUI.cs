@@ -8,31 +8,65 @@ public class ShopUI : MonoBehaviour
     [SerializeField] private TMP_Text breadNameText;
     [SerializeField] private TMP_Text breadPriceText;
     [SerializeField] private TMP_Text breadQuantityText;
-    [SerializeField] private Button breadBuyButton;
-    [SerializeField] private Button breadSellButton;
+    [SerializeField] private Button breadMinusButton;
+    [SerializeField] private Button breadPlusButton;
 
     [Header("Milk")]
     [SerializeField] private TMP_Text milkNameText;
     [SerializeField] private TMP_Text milkPriceText;
     [SerializeField] private TMP_Text milkQuantityText;
-    [SerializeField] private Button milkBuyButton;
-    [SerializeField] private Button milkSellButton;
+    [SerializeField] private Button milkMinusButton;
+    [SerializeField] private Button milkPlusButton;
 
     [Header("Tool Kit")]
     [SerializeField] private TMP_Text toolKitNameText;
     [SerializeField] private TMP_Text toolKitPriceText;
     [SerializeField] private TMP_Text toolKitQuantityText;
-    [SerializeField] private Button toolKitBuyButton;
-    [SerializeField] private Button toolKitSellButton;
+    [SerializeField] private Button toolKitMinusButton;
+    [SerializeField] private Button toolKitPlusButton;
 
     private ShopItem breadItem;
     private ShopItem milkItem;
     private ShopItem toolKitItem;
 
+    // =========================
+    // ENABLE
+    // =========================
+
+    private void OnEnable()
+    {
+        InventoryManager.OnInventoryChanged +=
+            UpdateAllUI;
+
+        CustomerManager.OnCustomerListChanged +=
+            UpdateAllUI;
+    }
+
+    // =========================
+    // DISABLE
+    // =========================
+
+    private void OnDisable()
+    {
+        InventoryManager.OnInventoryChanged -=
+            UpdateAllUI;
+
+        CustomerManager.OnCustomerListChanged -=
+            UpdateAllUI;
+    }
+
+    // =========================
+    // START
+    // =========================
+
     private void Start()
     {
         InitializeUI();
     }
+
+    // =========================
+    // INITIALIZE UI
+    // =========================
 
     private void InitializeUI()
     {
@@ -46,21 +80,27 @@ public class ShopUI : MonoBehaviour
         }
 
         breadItem =
-            ShopManager.Instance.GetItem("food_001");
+            ShopManager.Instance.GetItem(
+                "food_001"
+            );
 
         milkItem =
-            ShopManager.Instance.GetItem("food_002");
+            ShopManager.Instance.GetItem(
+                "food_002"
+            );
 
         toolKitItem =
-            ShopManager.Instance.GetItem("tool_001");
+            ShopManager.Instance.GetItem(
+                "tool_001"
+            );
 
         SetupItemUI(
             breadItem,
             breadNameText,
             breadPriceText,
             breadQuantityText,
-            breadBuyButton,
-            breadSellButton
+            breadMinusButton,
+            breadPlusButton
         );
 
         SetupItemUI(
@@ -68,8 +108,8 @@ public class ShopUI : MonoBehaviour
             milkNameText,
             milkPriceText,
             milkQuantityText,
-            milkBuyButton,
-            milkSellButton
+            milkMinusButton,
+            milkPlusButton
         );
 
         SetupItemUI(
@@ -77,18 +117,24 @@ public class ShopUI : MonoBehaviour
             toolKitNameText,
             toolKitPriceText,
             toolKitQuantityText,
-            toolKitBuyButton,
-            toolKitSellButton
+            toolKitMinusButton,
+            toolKitPlusButton
         );
+
+        UpdateAllUI();
     }
+
+    // =========================
+    // SETUP ITEM UI
+    // =========================
 
     private void SetupItemUI(
         ShopItem item,
         TMP_Text nameText,
         TMP_Text priceText,
         TMP_Text quantityText,
-        Button buyButton,
-        Button sellButton)
+        Button minusButton,
+        Button plusButton)
     {
         if (item == null)
         {
@@ -96,14 +142,14 @@ public class ShopUI : MonoBehaviour
                 "ShopUI: Shop item not found."
             );
 
-            if (buyButton != null)
+            if (minusButton != null)
             {
-                buyButton.interactable = false;
+                minusButton.interactable = false;
             }
 
-            if (sellButton != null)
+            if (plusButton != null)
             {
-                sellButton.interactable = false;
+                plusButton.interactable = false;
             }
 
             return;
@@ -111,14 +157,40 @@ public class ShopUI : MonoBehaviour
 
         if (nameText != null)
         {
-            nameText.text = item.ItemName;
+            nameText.text =
+                item.ItemName;
         }
 
         if (priceText != null)
         {
             priceText.text =
-                $"Buy: Rs. {item.BuyPrice:N0} | " +
-                $"Sell: Rs. {item.SellPrice:N0}";
+                $"Rs. {item.BuyPrice:N0}";
+        }
+
+        // =========================
+        // MINUS BUTTON
+        // =========================
+
+        if (minusButton != null)
+        {
+            minusButton.onClick.RemoveAllListeners();
+
+            minusButton.onClick.AddListener(
+                () => SellItem(item.ItemId)
+            );
+        }
+
+        // =========================
+        // PLUS BUTTON
+        // =========================
+
+        if (plusButton != null)
+        {
+            plusButton.onClick.RemoveAllListeners();
+
+            plusButton.onClick.AddListener(
+                () => BuyItem(item.ItemId)
+            );
         }
 
         UpdateQuantityText(
@@ -126,29 +198,16 @@ public class ShopUI : MonoBehaviour
             quantityText
         );
 
-        if (buyButton != null)
-        {
-            buyButton.onClick.RemoveAllListeners();
-
-            buyButton.onClick.AddListener(
-                () => BuyItem(item.ItemId)
-            );
-        }
-
-        if (sellButton != null)
-        {
-            sellButton.onClick.RemoveAllListeners();
-
-            sellButton.onClick.AddListener(
-                () => SellItem(item.ItemId)
-            );
-
-            UpdateSellButtonState(
-                item.ItemId,
-                sellButton
-            );
-        }
+        UpdateButtonStates(
+            item,
+            minusButton,
+            plusButton
+        );
     }
+
+    // =========================
+    // BUY
+    // =========================
 
     private void BuyItem(string itemId)
     {
@@ -161,33 +220,59 @@ public class ShopUI : MonoBehaviour
             return;
         }
 
+        // Check request before attempting purchase.
+        if (!CanBuyForCurrentCustomer(itemId))
+        {
+            Debug.LogWarning(
+                "Shop UI: Cannot buy this item for " +
+                "the current customer."
+            );
+
+            UpdateAllUI();
+
+            return;
+        }
+
         bool success =
-            ShopManager.Instance.BuyItem(itemId);
+            ShopManager.Instance.BuyItem(
+                itemId
+            );
 
         if (!success)
         {
+            UpdateAllUI();
+
             return;
         }
 
         UpdateAllUI();
 
-        ShopItem item =
-            ShopManager.Instance.GetItem(itemId);
-
-        if (item != null)
+        if (InventoryManager.Instance != null)
         {
             int quantity =
-                ShopManager.Instance.GetPurchasedQuantity(
+                InventoryManager.Instance.GetQuantity(
                     itemId
                 );
 
-            Debug.Log(
-                $"Shop UI purchase completed | " +
-                $"Item: {item.ItemName} | " +
-                $"Quantity: {quantity}"
-            );
+            ShopItem item =
+                ShopManager.Instance.GetItem(
+                    itemId
+                );
+
+            if (item != null)
+            {
+                Debug.Log(
+                    $"Shop UI +1 | " +
+                    $"Item: {item.ItemName} | " +
+                    $"Quantity: {quantity}"
+                );
+            }
         }
     }
+
+    // =========================
+    // SELL
+    // =========================
 
     private void SellItem(string itemId)
     {
@@ -201,34 +286,47 @@ public class ShopUI : MonoBehaviour
         }
 
         bool success =
-            ShopManager.Instance.SellItem(itemId);
+            ShopManager.Instance.SellItem(
+                itemId
+            );
 
         if (!success)
         {
+            UpdateAllUI();
+
             return;
         }
 
         UpdateAllUI();
 
-        ShopItem item =
-            ShopManager.Instance.GetItem(itemId);
-
-        if (item != null)
+        if (InventoryManager.Instance != null)
         {
             int quantity =
-                ShopManager.Instance.GetPurchasedQuantity(
+                InventoryManager.Instance.GetQuantity(
                     itemId
                 );
 
-            Debug.Log(
-                $"Shop UI sale completed | " +
-                $"Item: {item.ItemName} | " +
-                $"Quantity: {quantity}"
-            );
+            ShopItem item =
+                ShopManager.Instance.GetItem(
+                    itemId
+                );
+
+            if (item != null)
+            {
+                Debug.Log(
+                    $"Shop UI -1 | " +
+                    $"Item: {item.ItemName} | " +
+                    $"Quantity: {quantity}"
+                );
+            }
         }
     }
 
-    private void UpdateAllUI()
+    // =========================
+    // UPDATE ALL UI
+    // =========================
+
+    public void UpdateAllUI()
     {
         UpdateQuantityText(
             "food_001",
@@ -245,21 +343,28 @@ public class ShopUI : MonoBehaviour
             toolKitQuantityText
         );
 
-        UpdateSellButtonState(
-            "food_001",
-            breadSellButton
+        UpdateButtonStates(
+            breadItem,
+            breadMinusButton,
+            breadPlusButton
         );
 
-        UpdateSellButtonState(
-            "food_002",
-            milkSellButton
+        UpdateButtonStates(
+            milkItem,
+            milkMinusButton,
+            milkPlusButton
         );
 
-        UpdateSellButtonState(
-            "tool_001",
-            toolKitSellButton
+        UpdateButtonStates(
+            toolKitItem,
+            toolKitMinusButton,
+            toolKitPlusButton
         );
     }
+
+    // =========================
+    // UPDATE QUANTITY
+    // =========================
 
     private void UpdateQuantityText(
         string itemId,
@@ -270,13 +375,16 @@ public class ShopUI : MonoBehaviour
             return;
         }
 
-        if (ShopManager.Instance == null)
+        if (InventoryManager.Instance == null)
         {
+            quantityText.text =
+                "Qty: 0";
+
             return;
         }
 
         int quantity =
-            ShopManager.Instance.GetPurchasedQuantity(
+            InventoryManager.Instance.GetQuantity(
                 itemId
             );
 
@@ -284,27 +392,154 @@ public class ShopUI : MonoBehaviour
             $"Qty: {quantity}";
     }
 
-    private void UpdateSellButtonState(
-        string itemId,
-        Button sellButton)
+    // =========================
+    // UPDATE BUTTON STATES
+    // =========================
+
+    private void UpdateButtonStates(
+        ShopItem item,
+        Button minusButton,
+        Button plusButton)
     {
-        if (sellButton == null)
+        if (item == null)
         {
+            if (minusButton != null)
+            {
+                minusButton.interactable = false;
+            }
+
+            if (plusButton != null)
+            {
+                plusButton.interactable = false;
+            }
+
             return;
         }
 
-        if (ShopManager.Instance == null)
+        int inventoryQuantity = 0;
+
+        if (InventoryManager.Instance != null)
         {
-            sellButton.interactable = false;
-            return;
+            inventoryQuantity =
+                InventoryManager.Instance.GetQuantity(
+                    item.ItemId
+                );
         }
 
-        int quantity =
-            ShopManager.Instance.GetPurchasedQuantity(
+        // =========================
+        // MINUS
+        // =========================
+
+        if (minusButton != null)
+        {
+            minusButton.interactable =
+                inventoryQuantity > 0;
+        }
+
+        // =========================
+        // PLUS
+        // =========================
+
+        if (plusButton != null)
+        {
+            plusButton.interactable =
+                CanBuyForCurrentCustomer(
+                    item.ItemId
+                );
+        }
+    }
+
+    // =========================
+    // CURRENT CUSTOMER
+    // =========================
+
+    private Customer GetCurrentCustomer()
+    {
+        if (CustomerManager.Instance == null)
+        {
+            return null;
+        }
+
+        if (CustomerManager.Instance.CustomerCount <= 0)
+        {
+            return null;
+        }
+
+        if (CustomerManager.Instance.ActiveCustomers == null)
+        {
+            return null;
+        }
+
+        if (CustomerManager.Instance.ActiveCustomers.Count <= 0)
+        {
+            return null;
+        }
+
+        return
+            CustomerManager.Instance
+                .ActiveCustomers[0];
+    }
+
+    // =========================
+    // CAN BUY FOR CUSTOMER
+    // =========================
+
+    private bool CanBuyForCurrentCustomer(
+        string itemId)
+    {
+        Customer customer =
+            GetCurrentCustomer();
+
+        if (customer == null)
+        {
+            return false;
+        }
+
+        // Only the requested item can be purchased.
+        if (customer.RequestedItemId != itemId)
+        {
+            return false;
+        }
+
+        int currentQuantity = 0;
+
+        if (InventoryManager.Instance != null)
+        {
+            currentQuantity =
+                InventoryManager.Instance.GetQuantity(
+                    itemId
+                );
+        }
+
+        // Stop at requested quantity.
+        if (currentQuantity >=
+            customer.RequestedQuantity)
+        {
+            return false;
+        }
+
+        // Check money.
+        ShopItem item =
+            ShopManager.Instance.GetItem(
                 itemId
             );
 
-        sellButton.interactable =
-            quantity > 0;
+        if (item == null)
+        {
+            return false;
+        }
+
+        if (MoneyManager.Instance == null)
+        {
+            return false;
+        }
+
+        if (!MoneyManager.Instance.CanAfford(
+                item.BuyPrice))
+        {
+            return false;
+        }
+
+        return true;
     }
 }
