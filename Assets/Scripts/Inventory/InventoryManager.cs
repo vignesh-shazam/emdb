@@ -1,9 +1,12 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class InventoryManager : MonoBehaviour
 {
     public static InventoryManager Instance { get; private set; }
+
+    public static event Action OnInventoryChanged;
 
     [Header("Inventory")]
     [SerializeField]
@@ -40,6 +43,10 @@ public class InventoryManager : MonoBehaviour
         );
     }
 
+    // =========================
+    // GET ITEM
+    // =========================
+
     public InventoryItem GetItem(string itemId)
     {
         if (string.IsNullOrWhiteSpace(itemId))
@@ -58,6 +65,10 @@ public class InventoryManager : MonoBehaviour
         return null;
     }
 
+    // =========================
+    // HAS ITEM
+    // =========================
+
     public bool HasItem(string itemId)
     {
         InventoryItem item =
@@ -66,6 +77,10 @@ public class InventoryManager : MonoBehaviour
         return item != null &&
                item.Quantity > 0;
     }
+
+    // =========================
+    // GET QUANTITY
+    // =========================
 
     public int GetQuantity(string itemId)
     {
@@ -79,6 +94,10 @@ public class InventoryManager : MonoBehaviour
 
         return item.Quantity;
     }
+
+    // =========================
+    // ADD ITEM
+    // =========================
 
     public bool AddItem(
         string itemId,
@@ -126,6 +145,8 @@ public class InventoryManager : MonoBehaviour
                 $"Quantity: {existingItem.Quantity}"
             );
 
+            NotifyInventoryChanged();
+
             return true;
         }
 
@@ -145,8 +166,14 @@ public class InventoryManager : MonoBehaviour
             $"Quantity: {newItem.Quantity}"
         );
 
+        NotifyInventoryChanged();
+
         return true;
     }
+
+    // =========================
+    // REMOVE ITEM
+    // =========================
 
     public bool RemoveItem(
         string itemId,
@@ -214,8 +241,14 @@ public class InventoryManager : MonoBehaviour
             );
         }
 
+        NotifyInventoryChanged();
+
         return true;
     }
+
+    // =========================
+    // SET QUANTITY
+    // =========================
 
     public bool SetQuantity(
         string itemId,
@@ -262,6 +295,8 @@ public class InventoryManager : MonoBehaviour
                 $"Item: {existingItem.ItemName}"
             );
 
+            NotifyInventoryChanged();
+
             return true;
         }
 
@@ -273,6 +308,17 @@ public class InventoryManager : MonoBehaviour
             $"Quantity: {existingItem.Quantity}"
         );
 
+        NotifyInventoryChanged();
+
         return true;
+    }
+
+    // =========================
+    // INVENTORY CHANGE EVENT
+    // =========================
+
+    private void NotifyInventoryChanged()
+    {
+        OnInventoryChanged?.Invoke();
     }
 }
