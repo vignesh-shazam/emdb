@@ -1,12 +1,20 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public class CustomerSatisfactionManager : MonoBehaviour
 {
     public static CustomerSatisfactionManager Instance { get; private set; }
 
+    public static event Action OnSatisfactionChanged;
+    public static event Action OnMaximumSatisfactionReached;
+
     [Header("Satisfaction")]
     [SerializeField]
     private int satisfaction = 0;
+
+    [Header("Satisfaction Limit")]
+    [SerializeField]
+    private int maximumSatisfaction = 100;
 
     [Header("Satisfaction Values")]
     [SerializeField]
@@ -17,6 +25,12 @@ public class CustomerSatisfactionManager : MonoBehaviour
 
     public int Satisfaction =>
         satisfaction;
+
+    public int MaximumSatisfaction =>
+        maximumSatisfaction;
+
+    public bool IsMaximumSatisfaction =>
+        satisfaction >= maximumSatisfaction;
 
     // =========================
     // AWAKE
@@ -32,10 +46,24 @@ public class CustomerSatisfactionManager : MonoBehaviour
 
         Instance = this;
 
+        if (maximumSatisfaction < 1)
+        {
+            maximumSatisfaction = 100;
+        }
+
+        satisfaction =
+            Mathf.Clamp(
+                satisfaction,
+                0,
+                maximumSatisfaction
+            );
+
         Debug.Log(
             $"Customer Satisfaction Manager initialized | " +
-            $"Satisfaction: {satisfaction}"
+            $"Satisfaction: {satisfaction}/{maximumSatisfaction}"
         );
+
+        OnSatisfactionChanged?.Invoke();
     }
 
     // =========================
@@ -64,7 +92,7 @@ public class CustomerSatisfactionManager : MonoBehaviour
             $"Customer: {customer.CustomerName} | " +
             $"ID: {customer.CustomerId} | " +
             $"Satisfaction: +{servedSatisfaction} | " +
-            $"Total: {satisfaction}"
+            $"Total: {satisfaction}/{maximumSatisfaction}"
         );
     }
 
@@ -94,7 +122,7 @@ public class CustomerSatisfactionManager : MonoBehaviour
             $"Customer: {customer.CustomerName} | " +
             $"ID: {customer.CustomerId} | " +
             $"Satisfaction: {leftSatisfaction} | " +
-            $"Total: {satisfaction}"
+            $"Total: {satisfaction}/{maximumSatisfaction}"
         );
     }
 
@@ -105,7 +133,39 @@ public class CustomerSatisfactionManager : MonoBehaviour
     private void AddSatisfaction(
         int amount)
     {
+        bool wasMaximum =
+            satisfaction >= maximumSatisfaction;
+
         satisfaction += amount;
+
+        satisfaction =
+            Mathf.Clamp(
+                satisfaction,
+                0,
+                maximumSatisfaction
+            );
+
+        OnSatisfactionChanged?.Invoke();
+
+        if (!wasMaximum &&
+            satisfaction >= maximumSatisfaction)
+        {
+            OnMaximumSatisfactionReached?.Invoke();
+
+            Debug.Log(
+                "⭐ MAXIMUM CUSTOMER SATISFACTION REACHED! " +
+                $"({maximumSatisfaction})"
+            );
+        }
+    }
+
+    // =========================
+    // GET SATISFACTION
+    // =========================
+
+    public int GetSatisfaction()
+    {
+        return satisfaction;
     }
 
     // =========================
@@ -118,7 +178,9 @@ public class CustomerSatisfactionManager : MonoBehaviour
 
         Debug.Log(
             "Customer satisfaction reset | " +
-            "Total: 0"
+            $"Total: 0/{maximumSatisfaction}"
         );
+
+        OnSatisfactionChanged?.Invoke();
     }
 }
