@@ -20,6 +20,8 @@ public class CustomerTipUI : MonoBehaviour
         CustomerTipManager.OnTipsChanged +=
             RefreshUI;
 
+        InitializeUI();
+
         RefreshUI();
     }
 
@@ -31,17 +33,13 @@ public class CustomerTipUI : MonoBehaviour
     {
         CustomerTipManager.OnTipsChanged -=
             RefreshUI;
-    }
 
-    // =========================
-    // START
-    // =========================
-
-    private void Start()
-    {
-        InitializeUI();
-
-        RefreshUI();
+        if (claimTipsButton != null)
+        {
+            claimTipsButton.onClick.RemoveListener(
+                ClaimTips
+            );
+        }
     }
 
     // =========================
@@ -60,7 +58,9 @@ public class CustomerTipUI : MonoBehaviour
             return;
         }
 
-        claimTipsButton.onClick.RemoveAllListeners();
+        claimTipsButton.onClick.RemoveListener(
+            ClaimTips
+        );
 
         claimTipsButton.onClick.AddListener(
             ClaimTips

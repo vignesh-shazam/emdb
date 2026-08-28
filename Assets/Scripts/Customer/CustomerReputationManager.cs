@@ -14,6 +14,19 @@ public class CustomerReputationManager : MonoBehaviour
     [SerializeField]
     private string reputationName = "Very Poor";
 
+    [Header("Satisfaction Thresholds")]
+    [SerializeField]
+    private int poorThreshold = 25;
+
+    [SerializeField]
+    private int averageThreshold = 50;
+
+    [SerializeField]
+    private int goodThreshold = 75;
+
+    [SerializeField]
+    private int excellentThreshold = 100;
+
     [Header("Reputation Levels")]
     [SerializeField]
     private int veryPoorLevel = 1;
@@ -50,8 +63,12 @@ public class CustomerReputationManager : MonoBehaviour
 
         Instance = this;
 
+        ValidateSettings();
+
         Debug.Log(
-            "Customer Reputation Manager initialized."
+            "Customer Reputation Manager initialized | " +
+            $"Level: {reputationLevel} | " +
+            $"Reputation: {reputationName}"
         );
     }
 
@@ -85,6 +102,40 @@ public class CustomerReputationManager : MonoBehaviour
     }
 
     // =========================
+    // VALIDATE SETTINGS
+    // =========================
+
+    private void ValidateSettings()
+    {
+        poorThreshold =
+            Mathf.Clamp(poorThreshold, 1, 100);
+
+        averageThreshold =
+            Mathf.Clamp(averageThreshold, 1, 100);
+
+        goodThreshold =
+            Mathf.Clamp(goodThreshold, 1, 100);
+
+        excellentThreshold =
+            Mathf.Clamp(excellentThreshold, 1, 100);
+
+        veryPoorLevel =
+            Mathf.Max(1, veryPoorLevel);
+
+        poorLevel =
+            Mathf.Max(1, poorLevel);
+
+        averageLevel =
+            Mathf.Max(1, averageLevel);
+
+        goodLevel =
+            Mathf.Max(1, goodLevel);
+
+        excellentLevel =
+            Mathf.Max(1, excellentLevel);
+    }
+
+    // =========================
     // UPDATE REPUTATION
     // =========================
 
@@ -97,7 +148,7 @@ public class CustomerReputationManager : MonoBehaviour
 
         int satisfaction =
             CustomerSatisfactionManager.Instance
-                .GetSatisfaction();
+                .Satisfaction;
 
         int oldLevel =
             reputationLevel;
@@ -105,7 +156,11 @@ public class CustomerReputationManager : MonoBehaviour
         string oldName =
             reputationName;
 
-        if (satisfaction >= 100)
+        // =========================
+        // EXCELLENT
+        // =========================
+
+        if (satisfaction >= excellentThreshold)
         {
             reputationLevel =
                 excellentLevel;
@@ -113,7 +168,12 @@ public class CustomerReputationManager : MonoBehaviour
             reputationName =
                 "Excellent";
         }
-        else if (satisfaction >= 75)
+
+        // =========================
+        // GOOD
+        // =========================
+
+        else if (satisfaction >= goodThreshold)
         {
             reputationLevel =
                 goodLevel;
@@ -121,7 +181,12 @@ public class CustomerReputationManager : MonoBehaviour
             reputationName =
                 "Good";
         }
-        else if (satisfaction >= 50)
+
+        // =========================
+        // AVERAGE
+        // =========================
+
+        else if (satisfaction >= averageThreshold)
         {
             reputationLevel =
                 averageLevel;
@@ -129,7 +194,12 @@ public class CustomerReputationManager : MonoBehaviour
             reputationName =
                 "Average";
         }
-        else if (satisfaction >= 25)
+
+        // =========================
+        // POOR
+        // =========================
+
+        else if (satisfaction >= poorThreshold)
         {
             reputationLevel =
                 poorLevel;
@@ -137,6 +207,11 @@ public class CustomerReputationManager : MonoBehaviour
             reputationName =
                 "Poor";
         }
+
+        // =========================
+        // VERY POOR
+        // =========================
+
         else
         {
             reputationLevel =
@@ -145,6 +220,10 @@ public class CustomerReputationManager : MonoBehaviour
             reputationName =
                 "Very Poor";
         }
+
+        // =========================
+        // CHANGE DETECTION
+        // =========================
 
         if (oldLevel != reputationLevel ||
             oldName != reputationName)

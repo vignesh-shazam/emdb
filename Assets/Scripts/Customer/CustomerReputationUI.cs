@@ -17,7 +17,9 @@ public class CustomerReputationUI : MonoBehaviour
     private void OnEnable()
     {
         CustomerReputationManager.OnReputationChanged +=
-            UpdateUI;
+            RefreshUI;
+
+        RefreshUI();
     }
 
     // =========================
@@ -27,7 +29,7 @@ public class CustomerReputationUI : MonoBehaviour
     private void OnDisable()
     {
         CustomerReputationManager.OnReputationChanged -=
-            UpdateUI;
+            RefreshUI;
     }
 
     // =========================
@@ -36,27 +38,45 @@ public class CustomerReputationUI : MonoBehaviour
 
     private void Start()
     {
-        UpdateUI();
+        RefreshUI();
     }
 
     // =========================
-    // UPDATE UI
+    // REFRESH UI
     // =========================
 
-    private void UpdateUI()
+    public void RefreshUI()
     {
+        if (reputationLevelText == null &&
+            reputationNameText == null)
+        {
+            return;
+        }
+
         if (CustomerReputationManager.Instance == null)
         {
+            if (reputationLevelText != null)
+            {
+                reputationLevelText.text =
+                    "Level 1";
+            }
+
+            if (reputationNameText != null)
+            {
+                reputationNameText.text =
+                    "Very Poor";
+            }
+
             return;
         }
 
         int level =
             CustomerReputationManager.Instance
-                .GetReputationLevel();
+                .ReputationLevel;
 
         string reputation =
             CustomerReputationManager.Instance
-                .GetReputationName();
+                .ReputationName;
 
         if (reputationLevelText != null)
         {

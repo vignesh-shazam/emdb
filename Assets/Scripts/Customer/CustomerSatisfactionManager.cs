@@ -23,11 +23,21 @@ public class CustomerSatisfactionManager : MonoBehaviour
     [SerializeField]
     private int leftSatisfaction = -10;
 
+    // =========================
+    // PUBLIC PROPERTIES
+    // =========================
+
     public int Satisfaction =>
         satisfaction;
 
     public int MaximumSatisfaction =>
         maximumSatisfaction;
+
+    public int ServedSatisfaction =>
+        servedSatisfaction;
+
+    public int LeftSatisfaction =>
+        leftSatisfaction;
 
     public bool IsMaximumSatisfaction =>
         satisfaction >= maximumSatisfaction;
@@ -46,17 +56,13 @@ public class CustomerSatisfactionManager : MonoBehaviour
 
         Instance = this;
 
-        if (maximumSatisfaction < 1)
-        {
-            maximumSatisfaction = 100;
-        }
+        ValidateSettings();
 
-        satisfaction =
-            Mathf.Clamp(
-                satisfaction,
-                0,
-                maximumSatisfaction
-            );
+        satisfaction = Mathf.Clamp(
+            satisfaction,
+            0,
+            maximumSatisfaction
+        );
 
         Debug.Log(
             $"Customer Satisfaction Manager initialized | " +
@@ -67,11 +73,47 @@ public class CustomerSatisfactionManager : MonoBehaviour
     }
 
     // =========================
+    // VALIDATE SETTINGS
+    // =========================
+
+    private void ValidateSettings()
+    {
+        if (maximumSatisfaction < 1)
+        {
+            maximumSatisfaction = 100;
+
+            Debug.LogWarning(
+                "Maximum Satisfaction was invalid. " +
+                "Reset to 100."
+            );
+        }
+
+        if (servedSatisfaction < 0)
+        {
+            servedSatisfaction = 0;
+
+            Debug.LogWarning(
+                "Served Satisfaction cannot be negative. " +
+                "Reset to 0."
+            );
+        }
+
+        if (leftSatisfaction > 0)
+        {
+            leftSatisfaction = -10;
+
+            Debug.LogWarning(
+                "Left Satisfaction should be negative. " +
+                "Reset to -10."
+            );
+        }
+    }
+
+    // =========================
     // CUSTOMER SERVED
     // =========================
 
-    public void CustomerServed(
-        Customer customer)
+    public void CustomerServed(Customer customer)
     {
         if (customer == null)
         {
@@ -83,9 +125,7 @@ public class CustomerSatisfactionManager : MonoBehaviour
             return;
         }
 
-        AddSatisfaction(
-            servedSatisfaction
-        );
+        AddSatisfaction(servedSatisfaction);
 
         Debug.Log(
             $"Customer served | " +
@@ -100,8 +140,7 @@ public class CustomerSatisfactionManager : MonoBehaviour
     // CUSTOMER LEFT
     // =========================
 
-    public void CustomerLeft(
-        Customer customer)
+    public void CustomerLeft(Customer customer)
     {
         if (customer == null)
         {
@@ -113,9 +152,7 @@ public class CustomerSatisfactionManager : MonoBehaviour
             return;
         }
 
-        AddSatisfaction(
-            leftSatisfaction
-        );
+        AddSatisfaction(leftSatisfaction);
 
         Debug.Log(
             $"Customer left | " +
@@ -130,22 +167,26 @@ public class CustomerSatisfactionManager : MonoBehaviour
     // ADD SATISFACTION
     // =========================
 
-    private void AddSatisfaction(
-        int amount)
+    private void AddSatisfaction(int amount)
     {
         bool wasMaximum =
             satisfaction >= maximumSatisfaction;
 
+        int previousSatisfaction =
+            satisfaction;
+
         satisfaction += amount;
 
-        satisfaction =
-            Mathf.Clamp(
-                satisfaction,
-                0,
-                maximumSatisfaction
-            );
+        satisfaction = Mathf.Clamp(
+            satisfaction,
+            0,
+            maximumSatisfaction
+        );
 
-        OnSatisfactionChanged?.Invoke();
+        if (previousSatisfaction != satisfaction)
+        {
+            OnSatisfactionChanged?.Invoke();
+        }
 
         if (!wasMaximum &&
             satisfaction >= maximumSatisfaction)
@@ -169,18 +210,56 @@ public class CustomerSatisfactionManager : MonoBehaviour
     }
 
     // =========================
+    // SET SATISFACTION
+    // =========================
+
+    public void SetSatisfaction(int value)
+    {
+        int previousSatisfaction =
+            satisfaction;
+
+        satisfaction = Mathf.Clamp(
+            value,
+            0,
+            maximumSatisfaction
+        );
+
+        if (previousSatisfaction != satisfaction)
+        {
+            OnSatisfactionChanged?.Invoke();
+        }
+
+        if (previousSatisfaction < maximumSatisfaction &&
+            satisfaction >= maximumSatisfaction)
+        {
+            OnMaximumSatisfactionReached?.Invoke();
+
+            Debug.Log(
+                "⭐ MAXIMUM CUSTOMER SATISFACTION REACHED! " +
+                $"({maximumSatisfaction})"
+            );
+        }
+    }
+
+    // =========================
     // RESET
     // =========================
 
     public void ResetSatisfaction()
     {
+        int previousSatisfaction =
+            satisfaction;
+
         satisfaction = 0;
+
+        if (previousSatisfaction != satisfaction)
+        {
+            OnSatisfactionChanged?.Invoke();
+        }
 
         Debug.Log(
             "Customer satisfaction reset | " +
             $"Total: 0/{maximumSatisfaction}"
         );
-
-        OnSatisfactionChanged?.Invoke();
     }
 }

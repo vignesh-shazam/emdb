@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class CustomerSatisfactionUI : MonoBehaviour
 {
-    [Header("Satisfaction")]
+    [Header("Satisfaction UI")]
     [SerializeField]
     private TMP_Text satisfactionText;
 
@@ -52,16 +52,21 @@ public class CustomerSatisfactionUI : MonoBehaviour
         if (CustomerSatisfactionManager.Instance == null)
         {
             satisfactionText.text =
-                "Customer Satisfaction: 0";
+                "Customer Satisfaction: 0 / 100";
 
             return;
         }
 
         int satisfaction =
             CustomerSatisfactionManager.Instance
-                .GetSatisfaction();
+                .Satisfaction;
+
+        int maximumSatisfaction =
+            CustomerSatisfactionManager.Instance
+                .MaximumSatisfaction;
 
         satisfactionText.text =
-            $"Customer Satisfaction: {satisfaction}";
+            $"Customer Satisfaction: " +
+            $"{satisfaction} / {maximumSatisfaction}";
     }
 }
