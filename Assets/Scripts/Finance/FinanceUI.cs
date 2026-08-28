@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 
 public class FinanceUI : MonoBehaviour
 {
@@ -11,6 +12,16 @@ public class FinanceUI : MonoBehaviour
     [Header("Input")]
     [SerializeField]
     private KeyCode toggleKey = KeyCode.Q;
+
+    [Header("Finance Summary")]
+    [SerializeField]
+    private TextMeshProUGUI incomeText;
+
+    [SerializeField]
+    private TextMeshProUGUI expenseText;
+
+    [SerializeField]
+    private TextMeshProUGUI netText;
 
     public bool IsOpen =>
         financePanel != null &&
@@ -49,6 +60,8 @@ public class FinanceUI : MonoBehaviour
         }
 
         financePanel.SetActive(false);
+
+        ClearSummaryUI();
     }
 
     // =========================
@@ -60,6 +73,11 @@ public class FinanceUI : MonoBehaviour
         if (Input.GetKeyDown(toggleKey))
         {
             ToggleFinanceUI();
+        }
+
+        if (IsOpen)
+        {
+            UpdateFinanceSummary();
         }
     }
 
@@ -105,6 +123,8 @@ public class FinanceUI : MonoBehaviour
 
         financePanel.SetActive(true);
 
+        UpdateFinanceSummary();
+
         Debug.Log(
             "Finance UI opened."
         );
@@ -140,5 +160,136 @@ public class FinanceUI : MonoBehaviour
         }
 
         financePanel.SetActive(visible);
+
+        if (visible)
+        {
+            UpdateFinanceSummary();
+        }
+    }
+
+    // =========================================================
+    // FINANCE SUMMARY
+    // =========================================================
+
+    private void UpdateFinanceSummary()
+    {
+        if (GameTimeManager.Instance == null)
+        {
+            return;
+        }
+
+        int currentDay =
+            GameTimeManager.Instance.CurrentDay;
+
+        int totalIncome =
+            GetTotalIncome(currentDay);
+
+        int totalExpense =
+            GetTotalExpense(currentDay);
+
+        int netAmount =
+            totalIncome - totalExpense;
+
+        // =========================
+        // INCOME
+        // =========================
+
+        if (incomeText != null)
+        {
+            incomeText.text =
+                $"Income: Rs. {totalIncome:N0}";
+        }
+
+        // =========================
+        // EXPENSE
+        // =========================
+
+        if (expenseText != null)
+        {
+            expenseText.text =
+                $"Expenses: Rs. {totalExpense:N0}";
+        }
+
+        // =========================
+        // NET
+        // =========================
+
+        if (netText != null)
+        {
+            netText.text =
+                $"Net: Rs. {netAmount:N0}";
+        }
+    }
+
+    // =========================================================
+    // INCOME
+    // =========================================================
+
+    private int GetTotalIncome(int day)
+    {
+        if (IncomeManager.Instance == null)
+        {
+            return 0;
+        }
+
+        int total = 0;
+
+        foreach (
+            IncomeTransaction transaction
+            in IncomeManager.Instance.Transactions)
+        {
+            if (transaction == null)
+            {
+                continue;
+            }
+
+            if (transaction.Day == day)
+            {
+                total += transaction.Amount;
+            }
+        }
+
+        return total;
+    }
+
+    // =========================================================
+    // EXPENSE
+    // =========================================================
+
+    private int GetTotalExpense(int day)
+    {
+        if (DailyExpenseSummary.Instance == null)
+        {
+            return 0;
+        }
+
+        return
+            DailyExpenseSummary.Instance
+                .GetTotalForDay(day);
+    }
+
+    // =========================================================
+    // CLEAR UI
+    // =========================================================
+
+    private void ClearSummaryUI()
+    {
+        if (incomeText != null)
+        {
+            incomeText.text =
+                "Income: Rs. 0";
+        }
+
+        if (expenseText != null)
+        {
+            expenseText.text =
+                "Expenses: Rs. 0";
+        }
+
+        if (netText != null)
+        {
+            netText.text =
+                "Net: Rs. 0";
+        }
     }
 }
