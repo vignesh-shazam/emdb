@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -5,10 +6,64 @@ public class ShopManager : MonoBehaviour
 {
     public static ShopManager Instance { get; private set; }
 
+    // =========================
+    // EVENTS
+    // =========================
+
+    public static event Action OnShopUpdated;
+    public static event Action OnShopUpgrade;
+
+    // =========================
+    // SHOP ITEMS
+    // =========================
+
     [Header("Shop Items")]
     [SerializeField]
     private List<ShopItem> shopItems =
         new List<ShopItem>();
+
+    // =========================
+    // SHOP UPGRADE
+    // =========================
+
+    [Header("Shop Upgrade")]
+    [SerializeField]
+    private int shopUpgradeLevel = 1;
+
+    [SerializeField]
+    private int maximumUpgradeLevel = 10;
+
+    [SerializeField]
+    private int baseUpgradeCost = 1000;
+
+    [SerializeField]
+    private float upgradeCostMultiplier = 1.5f;
+
+    // =========================
+    // REVENUE
+    // =========================
+
+    [Header("Revenue Improvement")]
+    [SerializeField]
+    private float baseRevenueMultiplier = 1f;
+
+    [SerializeField]
+    private float revenueIncreasePerUpgrade = 0.10f;
+
+    // =========================
+    // CUSTOMER GROWTH
+    // =========================
+
+    [Header("Customer Growth")]
+    [SerializeField]
+    private float baseCustomerGrowthMultiplier = 1f;
+
+    [SerializeField]
+    private float customerGrowthPerUpgrade = 0.10f;
+
+    // =========================
+    // PURCHASE TRACKING
+    // =========================
 
     // Items currently owned by the player
     private readonly Dictionary<string, int> purchasedItems =
@@ -18,8 +73,35 @@ public class ShopManager : MonoBehaviour
     private readonly Dictionary<string, int> currentCustomerPurchases =
         new Dictionary<string, int>();
 
+    // =========================
+    // PUBLIC PROPERTIES
+    // =========================
+
     public IReadOnlyList<ShopItem> ShopItems =>
         shopItems;
+
+    public int ShopUpgradeLevel =>
+        shopUpgradeLevel;
+
+    public int MaximumUpgradeLevel =>
+        maximumUpgradeLevel;
+
+    public bool CanUpgradeShop =>
+        shopUpgradeLevel < maximumUpgradeLevel;
+
+    public float RevenueMultiplier =>
+        baseRevenueMultiplier +
+        ((shopUpgradeLevel - 1) *
+        revenueIncreasePerUpgrade);
+
+    public float CustomerGrowthMultiplier =>
+        baseCustomerGrowthMultiplier +
+        ((shopUpgradeLevel - 1) *
+        customerGrowthPerUpgrade);
+
+    // =========================
+    // AWAKE
+    // =========================
 
     private void Awake()
     {
@@ -40,6 +122,73 @@ public class ShopManager : MonoBehaviour
 
     private void InitializeShop()
     {
+        // -------------------------
+        // SHOP LEVEL VALIDATION
+        // -------------------------
+
+        if (shopUpgradeLevel < 1)
+        {
+            shopUpgradeLevel = 1;
+        }
+
+        if (maximumUpgradeLevel < 1)
+        {
+            maximumUpgradeLevel = 10;
+        }
+
+        if (shopUpgradeLevel >
+            maximumUpgradeLevel)
+        {
+            shopUpgradeLevel =
+                maximumUpgradeLevel;
+        }
+
+        // -------------------------
+        // UPGRADE COST VALIDATION
+        // -------------------------
+
+        if (baseUpgradeCost < 0)
+        {
+            baseUpgradeCost = 0;
+        }
+
+        if (upgradeCostMultiplier < 1f)
+        {
+            upgradeCostMultiplier = 1f;
+        }
+
+        // -------------------------
+        // REVENUE VALIDATION
+        // -------------------------
+
+        if (baseRevenueMultiplier < 0f)
+        {
+            baseRevenueMultiplier = 1f;
+        }
+
+        if (revenueIncreasePerUpgrade < 0f)
+        {
+            revenueIncreasePerUpgrade = 0f;
+        }
+
+        // -------------------------
+        // CUSTOMER GROWTH VALIDATION
+        // -------------------------
+
+        if (baseCustomerGrowthMultiplier < 0f)
+        {
+            baseCustomerGrowthMultiplier = 1f;
+        }
+
+        if (customerGrowthPerUpgrade < 0f)
+        {
+            customerGrowthPerUpgrade = 0f;
+        }
+
+        // -------------------------
+        // DEFAULT ITEMS
+        // -------------------------
+
         if (shopItems.Count == 0)
         {
             shopItems.Add(
@@ -72,9 +221,148 @@ public class ShopManager : MonoBehaviour
 
         Debug.Log(
             $"Shop initialized | " +
-            $"Items available: {shopItems.Count}"
+            $"Level: {shopUpgradeLevel} | " +
+            $"Items available: {shopItems.Count} | " +
+            $"Revenue Multiplier: {RevenueMultiplier:F2}x | " +
+            $"Customer Growth: {CustomerGrowthMultiplier:F2}x"
         );
+
+        OnShopUpdated?.Invoke();
     }
+
+    // =========================================================
+    // SHOP UPGRADE SYSTEM
+    // =========================================================
+
+    // =========================
+    // GET UPGRADE COST
+    // =========================
+
+    public int GetUpgradeCost()
+    {
+        if (!CanUpgradeShop)
+        {
+            return 0;
+        }
+
+        float cost =
+            baseUpgradeCost *
+            Mathf.Pow(
+                upgradeCostMultiplier,
+                shopUpgradeLevel - 1
+            );
+
+        return Mathf.RoundToInt(cost);
+    }
+
+    // =========================
+    // UPGRADE SHOP
+    // =========================
+
+    public bool UpgradeShop()
+    {
+        if (!CanUpgradeShop)
+        {
+            Debug.LogWarning(
+                "Shop upgrade failed: " +
+                "Maximum shop level reached."
+            );
+
+            return false;
+        }
+
+        if (MoneyManager.Instance == null)
+        {
+            Debug.LogError(
+                "Shop upgrade failed: " +
+                "MoneyManager not found."
+            );
+
+            return false;
+        }
+
+        int upgradeCost =
+            GetUpgradeCost();
+
+        if (!MoneyManager.Instance.CanAfford(
+                upgradeCost))
+        {
+            Debug.LogWarning(
+                $"Shop upgrade failed: " +
+                $"Insufficient money. " +
+                $"Required: Rs. {upgradeCost:N0}"
+            );
+
+            return false;
+        }
+
+        // =========================
+        // REMOVE MONEY
+        // =========================
+
+        MoneyManager.Instance.RemoveMoney(
+            upgradeCost
+        );
+
+        // =========================
+        // INCREASE LEVEL
+        // =========================
+
+        shopUpgradeLevel++;
+
+        Debug.Log(
+            $"⭐ SHOP UPGRADED | " +
+            $"New Level: {shopUpgradeLevel} | " +
+            $"Cost: Rs. {upgradeCost:N0} | " +
+            $"Revenue Multiplier: {RevenueMultiplier:F2}x | " +
+            $"Customer Growth: {CustomerGrowthMultiplier:F2}x"
+        );
+
+        OnShopUpgrade?.Invoke();
+        OnShopUpdated?.Invoke();
+
+        return true;
+    }
+
+    // =========================
+    // GET SHOP LEVEL
+    // =========================
+
+    public int GetShopLevel()
+    {
+        return shopUpgradeLevel;
+    }
+
+    // =========================
+    // GET NEXT UPGRADE COST
+    // =========================
+
+    public int GetNextUpgradeCost()
+    {
+        return GetUpgradeCost();
+    }
+
+    // =========================
+    // GET REVENUE MULTIPLIER
+    // =========================
+
+    public float GetRevenueMultiplier()
+    {
+        return RevenueMultiplier;
+    }
+
+    // =========================
+    // GET CUSTOMER GROWTH
+    // =========================
+
+    public float GetCustomerGrowthMultiplier()
+    {
+        return CustomerGrowthMultiplier;
+    }
+
+    // =========================================================
+    // SHOP ITEMS
+    // =========================================================
 
     // =========================
     // GET ITEM
@@ -98,9 +386,9 @@ public class ShopManager : MonoBehaviour
         return null;
     }
 
-    // =========================
+    // =========================================================
     // BUY ITEM
-    // =========================
+    // =========================================================
 
     public bool BuyItem(string itemId)
     {
@@ -267,9 +555,9 @@ public class ShopManager : MonoBehaviour
         return true;
     }
 
-    // =========================
+    // =========================================================
     // SELL / UNDO CURRENT BUY
-    // =========================
+    // =========================================================
 
     public bool SellItem(string itemId)
     {
@@ -378,6 +666,10 @@ public class ShopManager : MonoBehaviour
         return true;
     }
 
+    // =========================================================
+    // CUSTOMER PURCHASE
+    // =========================================================
+
     // =========================
     // COMPLETE CUSTOMER PURCHASE
     // =========================
@@ -469,6 +761,10 @@ public class ShopManager : MonoBehaviour
         );
     }
 
+    // =========================================================
+    // PURCHASE QUANTITIES
+    // =========================================================
+
     // =========================
     // TOTAL PURCHASED QUANTITY
     // =========================
@@ -512,6 +808,10 @@ public class ShopManager : MonoBehaviour
 
         return 0;
     }
+
+    // =========================================================
+    // PURCHASE TRACKING
+    // =========================================================
 
     // =========================
     // ADD TOTAL PURCHASE
@@ -601,9 +901,9 @@ public class ShopManager : MonoBehaviour
         }
     }
 
-    // =========================
+    // =========================================================
     // GET CURRENT CUSTOMER
-    // =========================
+    // =========================================================
 
     private Customer GetCurrentCustomer()
     {
