@@ -11,6 +11,10 @@ public class IncomeManager : MonoBehaviour
     public IReadOnlyList<IncomeTransaction> Transactions =>
         transactions;
 
+    // =========================
+    // AWAKE
+    // =========================
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -22,9 +26,29 @@ public class IncomeManager : MonoBehaviour
         Instance = this;
     }
 
+    // =========================
+    // ADD INCOME - DEFAULT
+    // =========================
+
     public bool AddIncome(
         int amount,
         string source)
+    {
+        return AddIncome(
+            amount,
+            source,
+            FinanceAccountType.Employee
+        );
+    }
+
+    // =========================
+    // ADD INCOME - ACCOUNT
+    // =========================
+
+    public bool AddIncome(
+        int amount,
+        string source,
+        FinanceAccountType accountType)
     {
         if (amount <= 0)
         {
@@ -53,15 +77,36 @@ public class IncomeManager : MonoBehaviour
             return false;
         }
 
-        MoneyManager.Instance.AddMoney(amount);
+        // =========================
+        // ADD MONEY
+        // =========================
+
+        MoneyManager.Instance.AddMoney(
+            amount
+        );
+
+        // =========================
+        // RECORD EXISTING INCOME
+        // =========================
 
         RecordTransaction(
             amount,
             source
         );
 
+        // =========================
+        // RECORD FINANCE LEDGER
+        // =========================
+
+        RecordFinanceTransaction(
+            amount,
+            source,
+            accountType
+        );
+
         Debug.Log(
             $"Income completed | " +
+            $"Account: {accountType} | " +
             $"Source: {source} | " +
             $"Amount: Rs. {amount:N0} | " +
             $"Balance: Rs. " +
@@ -70,6 +115,10 @@ public class IncomeManager : MonoBehaviour
 
         return true;
     }
+
+    // =========================
+    // RECORD INCOME
+    // =========================
 
     private void RecordTransaction(
         int amount,
@@ -104,6 +153,35 @@ public class IncomeManager : MonoBehaviour
                 GameTimeManager.Instance.CurrentMinute
             );
 
-        transactions.Add(transaction);
+        transactions.Add(
+            transaction
+        );
+    }
+
+    // =========================
+    // RECORD FINANCE LEDGER
+    // =========================
+
+    private void RecordFinanceTransaction(
+        int amount,
+        string source,
+        FinanceAccountType accountType)
+    {
+        if (FinanceTransactionManager.Instance == null)
+        {
+            Debug.LogWarning(
+                "IncomeManager: " +
+                "FinanceTransactionManager not found. " +
+                "Finance ledger entry skipped."
+            );
+
+            return;
+        }
+
+        FinanceTransactionManager.Instance.RecordIncome(
+            accountType,
+            amount,
+            source
+        );
     }
 }

@@ -172,9 +172,25 @@ public class CustomerTipManager : MonoBehaviour
         int claimedAmount =
             unclaimedTips;
 
+        // =========================
+        // ADD MONEY
+        // =========================
+
         MoneyManager.Instance.AddMoney(
             claimedAmount
         );
+
+        // =========================
+        // RECORD SHOP INCOME
+        // =========================
+
+        RecordClaimedTip(
+            claimedAmount
+        );
+
+        // =========================
+        // CLEAR UNCLAIMED TIPS
+        // =========================
 
         unclaimedTips = 0;
 
@@ -187,6 +203,37 @@ public class CustomerTipManager : MonoBehaviour
         OnTipsChanged?.Invoke();
 
         return true;
+    }
+
+    // =========================
+    // RECORD CLAIMED TIP
+    // =========================
+
+    private void RecordClaimedTip(
+        int amount)
+    {
+        if (FinanceTransactionManager.Instance == null)
+        {
+            Debug.LogWarning(
+                "CustomerTipManager: " +
+                "FinanceTransactionManager not found. " +
+                "Tip ledger entry skipped."
+            );
+
+            return;
+        }
+
+        FinanceTransactionManager.Instance.RecordIncome(
+            FinanceAccountType.Shop,
+            amount,
+            "Tip Claimed"
+        );
+
+        Debug.Log(
+            $"Tip claimed recorded | " +
+            $"Account: Shop | " +
+            $"Amount: Rs. {amount:N0}"
+        );
     }
 
     // =========================

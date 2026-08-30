@@ -1,27 +1,95 @@
 ﻿using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class FinanceUI : MonoBehaviour
 {
     public static FinanceUI Instance { get; private set; }
 
+    // =========================
+    // FINANCE UI
+    // =========================
+
     [Header("Finance UI")]
     [SerializeField]
     private GameObject financePanel;
 
+    // =========================
+    // INPUT
+    // =========================
+
     [Header("Input")]
     [SerializeField]
-    private KeyCode toggleKey = KeyCode.Q;
+    private Key toggleKey = Key.Q;
 
-    [Header("Finance Summary")]
+    // =========================
+    // EMPLOYEE ACCOUNT
+    // =========================
+
+    [Header("Employee Account")]
     [SerializeField]
-    private TextMeshProUGUI incomeText;
+    private TextMeshProUGUI employeeBalanceText;
 
     [SerializeField]
-    private TextMeshProUGUI expenseText;
+    private TextMeshProUGUI employeeIncomeText;
 
     [SerializeField]
-    private TextMeshProUGUI netText;
+    private TextMeshProUGUI employeeExpenseText;
+
+    [SerializeField]
+    private TextMeshProUGUI employeeNetText;
+
+    // =========================
+    // SHOP ACCOUNT
+    // =========================
+
+    [Header("Shop Account")]
+    [SerializeField]
+    private TextMeshProUGUI shopBalanceText;
+
+    [SerializeField]
+    private TextMeshProUGUI shopIncomeText;
+
+    [SerializeField]
+    private TextMeshProUGUI shopExpenseText;
+
+    [SerializeField]
+    private TextMeshProUGUI shopNetText;
+
+    // =========================
+    // MERGED ACCOUNT
+    // =========================
+
+    [Header("Merged Account")]
+    [SerializeField]
+    private TextMeshProUGUI mergedBalanceText;
+
+    [SerializeField]
+    private TextMeshProUGUI mergedIncomeText;
+
+    [SerializeField]
+    private TextMeshProUGUI mergedExpenseText;
+
+    [SerializeField]
+    private TextMeshProUGUI mergedNetText;
+
+    // =========================
+    // SECTIONS
+    // =========================
+
+    [Header("Sections")]
+    [SerializeField]
+    private GameObject employeeSection;
+
+    [SerializeField]
+    private GameObject shopSection;
+
+    [SerializeField]
+    private GameObject mergedSection;
+
+    // =========================
+    // PUBLIC
+    // =========================
 
     public bool IsOpen =>
         financePanel != null &&
@@ -33,7 +101,8 @@ public class FinanceUI : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (Instance != null &&
+            Instance != this)
         {
             Destroy(gameObject);
             return;
@@ -61,7 +130,7 @@ public class FinanceUI : MonoBehaviour
 
         financePanel.SetActive(false);
 
-        ClearSummaryUI();
+        ClearUI();
     }
 
     // =========================
@@ -70,14 +139,15 @@ public class FinanceUI : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(toggleKey))
+        if (Keyboard.current != null &&
+            Keyboard.current[toggleKey].wasPressedThisFrame)
         {
             ToggleFinanceUI();
         }
 
         if (IsOpen)
         {
-            UpdateFinanceSummary();
+            UpdateFinanceUI();
         }
     }
 
@@ -123,7 +193,7 @@ public class FinanceUI : MonoBehaviour
 
         financePanel.SetActive(true);
 
-        UpdateFinanceSummary();
+        UpdateFinanceUI();
 
         Debug.Log(
             "Finance UI opened."
@@ -152,7 +222,8 @@ public class FinanceUI : MonoBehaviour
     // SET VISIBILITY
     // =========================
 
-    public void SetFinanceUIVisible(bool visible)
+    public void SetFinanceUIVisible(
+        bool visible)
     {
         if (financePanel == null)
         {
@@ -163,132 +234,337 @@ public class FinanceUI : MonoBehaviour
 
         if (visible)
         {
-            UpdateFinanceSummary();
+            UpdateFinanceUI();
         }
     }
 
     // =========================================================
-    // FINANCE SUMMARY
+    // UPDATE FINANCE UI
     // =========================================================
 
-    private void UpdateFinanceSummary()
+    private void UpdateFinanceUI()
     {
-        if (GameTimeManager.Instance == null)
+        if (FinanceAccountManager.Instance == null)
         {
+            ClearUI();
             return;
         }
 
-        int currentDay =
-            GameTimeManager.Instance.CurrentDay;
+        UpdateAccountSections();
 
-        int totalIncome =
-            GetTotalIncome(currentDay);
-
-        int totalExpense =
-            GetTotalExpense(currentDay);
-
-        int netAmount =
-            totalIncome - totalExpense;
-
-        // =========================
-        // INCOME
-        // =========================
-
-        if (incomeText != null)
+        if (FinanceAccountManager.Instance.IsMergedAccount)
         {
-            incomeText.text =
-                $"Income: Rs. {totalIncome:N0}";
+            UpdateMergedAccount();
         }
-
-        // =========================
-        // EXPENSE
-        // =========================
-
-        if (expenseText != null)
+        else
         {
-            expenseText.text =
-                $"Expenses: Rs. {totalExpense:N0}";
-        }
-
-        // =========================
-        // NET
-        // =========================
-
-        if (netText != null)
-        {
-            netText.text =
-                $"Net: Rs. {netAmount:N0}";
+            UpdateEmployeeAccount();
+            UpdateShopAccount();
         }
     }
 
     // =========================================================
-    // INCOME
+    // ACCOUNT SECTIONS
     // =========================================================
 
-    private int GetTotalIncome(int day)
+    private void UpdateAccountSections()
     {
-        if (IncomeManager.Instance == null)
+        bool merged =
+            FinanceAccountManager.Instance != null &&
+            FinanceAccountManager.Instance.IsMergedAccount;
+
+        if (employeeSection != null)
         {
-            return 0;
+            employeeSection.SetActive(!merged);
         }
 
-        int total = 0;
-
-        foreach (
-            IncomeTransaction transaction
-            in IncomeManager.Instance.Transactions)
+        if (shopSection != null)
         {
-            if (transaction == null)
-            {
-                continue;
-            }
-
-            if (transaction.Day == day)
-            {
-                total += transaction.Amount;
-            }
+            shopSection.SetActive(!merged);
         }
 
-        return total;
+        if (mergedSection != null)
+        {
+            mergedSection.SetActive(merged);
+        }
     }
 
     // =========================================================
-    // EXPENSE
+    // EMPLOYEE ACCOUNT
     // =========================================================
 
-    private int GetTotalExpense(int day)
+    private void UpdateEmployeeAccount()
     {
-        if (DailyExpenseSummary.Instance == null)
+        FinanceAccountType account =
+            FinanceAccountType.Employee;
+
+        int balance =
+            FinanceAccountManager.Instance
+                .EmployeeBalance;
+
+        int income =
+            GetTotalIncome(account);
+
+        int expense =
+            GetTotalExpense(account);
+
+        int net =
+            income - expense;
+
+        if (employeeBalanceText != null)
+        {
+            employeeBalanceText.text =
+                $"Balance: Rs. {balance:N0}";
+        }
+
+        if (employeeIncomeText != null)
+        {
+            employeeIncomeText.text =
+                $"Income: Rs. {income:N0}";
+        }
+
+        if (employeeExpenseText != null)
+        {
+            employeeExpenseText.text =
+                $"Expense: Rs. {expense:N0}";
+        }
+
+        if (employeeNetText != null)
+        {
+            employeeNetText.text =
+                $"Net: Rs. {net:N0}";
+        }
+    }
+
+    // =========================================================
+    // SHOP ACCOUNT
+    // =========================================================
+
+    private void UpdateShopAccount()
+    {
+        FinanceAccountType account =
+            FinanceAccountType.Shop;
+
+        int balance =
+            FinanceAccountManager.Instance
+                .ShopBalance;
+
+        int income =
+            GetTotalIncome(account);
+
+        int expense =
+            GetTotalExpense(account);
+
+        int net =
+            income - expense;
+
+        if (shopBalanceText != null)
+        {
+            shopBalanceText.text =
+                $"Balance: Rs. {balance:N0}";
+        }
+
+        if (shopIncomeText != null)
+        {
+            shopIncomeText.text =
+                $"Income: Rs. {income:N0}";
+        }
+
+        if (shopExpenseText != null)
+        {
+            shopExpenseText.text =
+                $"Expense: Rs. {expense:N0}";
+        }
+
+        if (shopNetText != null)
+        {
+            shopNetText.text =
+                $"Net: Rs. {net:N0}";
+        }
+    }
+
+    // =========================================================
+    // MERGED ACCOUNT
+    // =========================================================
+
+    private void UpdateMergedAccount()
+    {
+        int employeeBalance =
+            FinanceAccountManager.Instance
+                .EmployeeBalance;
+
+        int shopBalance =
+            FinanceAccountManager.Instance
+                .ShopBalance;
+
+        int mergedBalance =
+            employeeBalance +
+            shopBalance;
+
+        int employeeIncome =
+            GetTotalIncome(
+                FinanceAccountType.Employee
+            );
+
+        int shopIncome =
+            GetTotalIncome(
+                FinanceAccountType.Shop
+            );
+
+        int employeeExpense =
+            GetTotalExpense(
+                FinanceAccountType.Employee
+            );
+
+        int shopExpense =
+            GetTotalExpense(
+                FinanceAccountType.Shop
+            );
+
+        int mergedIncome =
+            employeeIncome +
+            shopIncome;
+
+        int mergedExpense =
+            employeeExpense +
+            shopExpense;
+
+        int mergedNet =
+            mergedIncome -
+            mergedExpense;
+
+        if (mergedBalanceText != null)
+        {
+            mergedBalanceText.text =
+                $"Balance: Rs. {mergedBalance:N0}";
+        }
+
+        if (mergedIncomeText != null)
+        {
+            mergedIncomeText.text =
+                $"Income: Rs. {mergedIncome:N0}";
+        }
+
+        if (mergedExpenseText != null)
+        {
+            mergedExpenseText.text =
+                $"Expense: Rs. {mergedExpense:N0}";
+        }
+
+        if (mergedNetText != null)
+        {
+            mergedNetText.text =
+                $"Net: Rs. {mergedNet:N0}";
+        }
+    }
+
+    // =========================================================
+    // TOTAL INCOME
+    // =========================================================
+
+    private int GetTotalIncome(
+        FinanceAccountType accountType)
+    {
+        if (FinanceTransactionManager.Instance == null)
         {
             return 0;
         }
 
-        return
-            DailyExpenseSummary.Instance
-                .GetTotalForDay(day);
+        return FinanceTransactionManager.Instance
+            .GetTotalIncome(accountType);
+    }
+
+    // =========================================================
+    // TOTAL EXPENSE
+    // =========================================================
+
+    private int GetTotalExpense(
+        FinanceAccountType accountType)
+    {
+        if (FinanceTransactionManager.Instance == null)
+        {
+            return 0;
+        }
+
+        return FinanceTransactionManager.Instance
+            .GetTotalExpense(accountType);
     }
 
     // =========================================================
     // CLEAR UI
     // =========================================================
 
-    private void ClearSummaryUI()
+    private void ClearUI()
     {
-        if (incomeText != null)
+        if (employeeBalanceText != null)
         {
-            incomeText.text =
+            employeeBalanceText.text =
+                "Balance: Rs. 0";
+        }
+
+        if (employeeIncomeText != null)
+        {
+            employeeIncomeText.text =
                 "Income: Rs. 0";
         }
 
-        if (expenseText != null)
+        if (employeeExpenseText != null)
         {
-            expenseText.text =
-                "Expenses: Rs. 0";
+            employeeExpenseText.text =
+                "Expense: Rs. 0";
         }
 
-        if (netText != null)
+        if (employeeNetText != null)
         {
-            netText.text =
+            employeeNetText.text =
+                "Net: Rs. 0";
+        }
+
+        if (shopBalanceText != null)
+        {
+            shopBalanceText.text =
+                "Balance: Rs. 0";
+        }
+
+        if (shopIncomeText != null)
+        {
+            shopIncomeText.text =
+                "Income: Rs. 0";
+        }
+
+        if (shopExpenseText != null)
+        {
+            shopExpenseText.text =
+                "Expense: Rs. 0";
+        }
+
+        if (shopNetText != null)
+        {
+            shopNetText.text =
+                "Net: Rs. 0";
+        }
+
+        if (mergedBalanceText != null)
+        {
+            mergedBalanceText.text =
+                "Balance: Rs. 0";
+        }
+
+        if (mergedIncomeText != null)
+        {
+            mergedIncomeText.text =
+                "Income: Rs. 0";
+        }
+
+        if (mergedExpenseText != null)
+        {
+            mergedExpenseText.text =
+                "Expense: Rs. 0";
+        }
+
+        if (mergedNetText != null)
+        {
+            mergedNetText.text =
                 "Net: Rs. 0";
         }
     }

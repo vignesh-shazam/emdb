@@ -58,7 +58,8 @@ public class CustomerManager : MonoBehaviour
     // GET CUSTOMER
     // =========================
 
-    public Customer GetCustomer(string customerId)
+    public Customer GetCustomer(
+        string customerId)
     {
         if (string.IsNullOrWhiteSpace(customerId))
         {
@@ -85,7 +86,8 @@ public class CustomerManager : MonoBehaviour
     // ADD CUSTOMER
     // =========================
 
-    public bool AddCustomer(Customer customer)
+    public bool AddCustomer(
+        Customer customer)
     {
         if (customer == null)
         {
@@ -106,7 +108,8 @@ public class CustomerManager : MonoBehaviour
             return false;
         }
 
-        if (GetCustomer(customer.CustomerId) != null)
+        if (GetCustomer(
+                customer.CustomerId) != null)
         {
             Debug.LogWarning(
                 $"Add customer failed: " +
@@ -117,7 +120,9 @@ public class CustomerManager : MonoBehaviour
             return false;
         }
 
-        activeCustomers.Add(customer);
+        activeCustomers.Add(
+            customer
+        );
 
         Debug.Log(
             $"Customer added | " +
@@ -134,7 +139,8 @@ public class CustomerManager : MonoBehaviour
     // REMOVE CUSTOMER
     // =========================
 
-    public bool RemoveCustomer(string customerId)
+    public bool RemoveCustomer(
+        string customerId)
     {
         Customer customer =
             GetCustomer(customerId);
@@ -149,7 +155,9 @@ public class CustomerManager : MonoBehaviour
             return false;
         }
 
-        activeCustomers.Remove(customer);
+        activeCustomers.Remove(
+            customer
+        );
 
         Debug.Log(
             $"Customer removed | " +
@@ -167,9 +175,11 @@ public class CustomerManager : MonoBehaviour
     // HAS CUSTOMER
     // =========================
 
-    public bool HasCustomer(string customerId)
+    public bool HasCustomer(
+        string customerId)
     {
-        return GetCustomer(customerId) != null;
+        return GetCustomer(
+            customerId) != null;
     }
 
     // =========================
@@ -199,7 +209,8 @@ public class CustomerManager : MonoBehaviour
         int quantity = 1,
         float patience = 100f)
     {
-        if (string.IsNullOrWhiteSpace(customerId))
+        if (string.IsNullOrWhiteSpace(
+                customerId))
         {
             Debug.LogWarning(
                 "Create customer failed: " +
@@ -209,7 +220,8 @@ public class CustomerManager : MonoBehaviour
             return null;
         }
 
-        if (string.IsNullOrWhiteSpace(customerName))
+        if (string.IsNullOrWhiteSpace(
+                customerName))
         {
             Debug.LogWarning(
                 "Create customer failed: " +
@@ -219,7 +231,8 @@ public class CustomerManager : MonoBehaviour
             return null;
         }
 
-        if (string.IsNullOrWhiteSpace(itemId))
+        if (string.IsNullOrWhiteSpace(
+                itemId))
         {
             Debug.LogWarning(
                 "Create customer failed: " +
@@ -229,7 +242,8 @@ public class CustomerManager : MonoBehaviour
             return null;
         }
 
-        if (string.IsNullOrWhiteSpace(itemName))
+        if (string.IsNullOrWhiteSpace(
+                itemName))
         {
             Debug.LogWarning(
                 "Create customer failed: " +
@@ -282,7 +296,8 @@ public class CustomerManager : MonoBehaviour
     // SERVE CUSTOMER
     // =========================
 
-    public bool ServeCustomer(string customerId)
+    public bool ServeCustomer(
+        string customerId)
     {
         Customer customer =
             GetCustomer(customerId);
@@ -428,6 +443,15 @@ public class CustomerManager : MonoBehaviour
         );
 
         // =========================
+        // RECORD SHOP INCOME
+        // =========================
+
+        RecordShopSale(
+            payment,
+            customer
+        );
+
+        // =========================
         // COMPLETE PURCHASE
         // =========================
 
@@ -478,8 +502,42 @@ public class CustomerManager : MonoBehaviour
         // REMOVE CUSTOMER
         // =========================
 
-        RemoveCustomer(customerId);
+        RemoveCustomer(
+            customerId
+        );
 
         return true;
+    }
+
+    // =========================
+    // RECORD SHOP SALE
+    // =========================
+
+    private void RecordShopSale(
+        int payment,
+        Customer customer)
+    {
+        if (FinanceTransactionManager.Instance == null)
+        {
+            Debug.LogWarning(
+                "CustomerManager: " +
+                "FinanceTransactionManager not found. " +
+                "Shop sale ledger entry skipped."
+            );
+
+            return;
+        }
+
+        FinanceTransactionManager.Instance.RecordIncome(
+            FinanceAccountType.Shop,
+            payment,
+            "Shop Sale"
+        );
+
+        Debug.Log(
+            $"Shop sale recorded | " +
+            $"Customer: {customer.CustomerName} | " +
+            $"Amount: Rs. {payment:N0}"
+        );
     }
 }

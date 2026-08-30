@@ -25,7 +25,8 @@ public class CareerManager : MonoBehaviour
     private JobType startingJob =
         JobType.Unemployed;
 
-    [SerializeField] private int startingSalary = 0;
+    [SerializeField]
+    private int startingSalary = 0;
 
     [Header("Career Requirements")]
     [SerializeField]
@@ -33,13 +34,17 @@ public class CareerManager : MonoBehaviour
         new List<CareerJobRequirement>();
 
     [Header("Career Experience")]
-    [SerializeField] private int startingExperience = 0;
+    [SerializeField]
+    private int startingExperience = 0;
 
-    [SerializeField] private int startingCareerLevel = 1;
+    [SerializeField]
+    private int startingCareerLevel = 1;
 
-    [SerializeField] private int experiencePerWork = 25;
+    [SerializeField]
+    private int experiencePerWork = 25;
 
-    [SerializeField] private int baseExperienceRequired = 100;
+    [SerializeField]
+    private int baseExperienceRequired = 100;
 
     private CareerData careerData;
 
@@ -48,6 +53,12 @@ public class CareerManager : MonoBehaviour
     private int currentExperience;
 
     private int careerLevel;
+
+    // =========================
+    // SALARY TRACKING
+    // =========================
+
+    private int lastSalaryPaidMonth = -1;
 
     // =========================
     // PUBLIC PROPERTIES
@@ -87,13 +98,17 @@ public class CareerManager : MonoBehaviour
             : (float)currentExperience /
               ExperienceRequiredForNextLevel;
 
+    public int LastSalaryPaidMonth =>
+        lastSalaryPaidMonth;
+
     // =========================
     // UNITY
     // =========================
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (Instance != null &&
+            Instance != this)
         {
             Destroy(gameObject);
             return;
@@ -102,6 +117,11 @@ public class CareerManager : MonoBehaviour
         Instance = this;
 
         InitializeCareer();
+    }
+
+    private void Update()
+    {
+        ProcessMonthlySalary();
     }
 
     // =========================
@@ -120,6 +140,8 @@ public class CareerManager : MonoBehaviour
         );
 
         lastWorkedDay = -1;
+
+        lastSalaryPaidMonth = -1;
 
         currentExperience =
             Mathf.Max(
@@ -162,10 +184,85 @@ public class CareerManager : MonoBehaviour
     }
 
     // =========================
+    // MONTHLY SALARY
+    // =========================
+
+    private void ProcessMonthlySalary()
+    {
+        if (!IsEmployed)
+        {
+            return;
+        }
+
+        if (CurrentSalary <= 0)
+        {
+            return;
+        }
+
+        if (GameTimeManager.Instance == null)
+        {
+            return;
+        }
+
+        int currentMonth =
+            GameTimeManager.Instance.CurrentMonth;
+
+        if (!GameTimeManager.Instance.IsLastDayOfMonth)
+        {
+            return;
+        }
+
+        if (lastSalaryPaidMonth ==
+            currentMonth)
+        {
+            return;
+        }
+
+        if (IncomeManager.Instance == null)
+        {
+            Debug.LogError(
+                "Salary payment failed: " +
+                "IncomeManager not found."
+            );
+
+            return;
+        }
+
+        bool salaryCredited =
+            IncomeManager.Instance.AddIncome(
+                CurrentSalary,
+                "Salary Credited",
+                FinanceAccountType.Employee
+            );
+
+        if (!salaryCredited)
+        {
+            Debug.LogWarning(
+                $"Salary payment failed | " +
+                $"Month: {currentMonth} | " +
+                $"Salary: Rs. {CurrentSalary:N0}"
+            );
+
+            return;
+        }
+
+        lastSalaryPaidMonth =
+            currentMonth;
+
+        Debug.Log(
+            $"Monthly salary credited | " +
+            $"Month: {currentMonth} | " +
+            $"Day: {GameTimeManager.Instance.CurrentDay} | " +
+            $"Salary: Rs. {CurrentSalary:N0}"
+        );
+    }
+
+    // =========================
     // CAREER REQUIREMENTS
     // =========================
 
-    public bool CanTakeJob(JobType newJob)
+    public bool CanTakeJob(
+        JobType newJob)
     {
         if (!EnsureCareerInitialized())
         {
@@ -320,15 +417,6 @@ public class CareerManager : MonoBehaviour
             return false;
         }
 
-        if (MoneyManager.Instance == null)
-        {
-            Debug.LogError(
-                "Work failed: MoneyManager not found."
-            );
-
-            return false;
-        }
-
         if (GameTimeManager.Instance == null)
         {
             Debug.LogError(
@@ -350,11 +438,12 @@ public class CareerManager : MonoBehaviour
             return false;
         }
 
-        MoneyManager.Instance.AddMoney(
-            CurrentSalary
-        );
+        // =========================
+        // WORK
+        // =========================
 
-        lastWorkedDay = currentDay;
+        lastWorkedDay =
+            currentDay;
 
         AddExperience(
             experiencePerWork
@@ -364,7 +453,8 @@ public class CareerManager : MonoBehaviour
             $"Work completed | " +
             $"Day: {currentDay} | " +
             $"Job: {CurrentJob} | " +
-            $"Salary Added: Rs. {CurrentSalary:N0}"
+            $"Salary pending until month end: " +
+            $"Rs. {CurrentSalary:N0}"
         );
 
         return true;
@@ -374,7 +464,8 @@ public class CareerManager : MonoBehaviour
     // CAREER EXPERIENCE
     // =========================
 
-    private void AddExperience(int amount)
+    private void AddExperience(
+        int amount)
     {
         if (amount <= 0)
         {
@@ -401,7 +492,8 @@ public class CareerManager : MonoBehaviour
 
         while (currentExperience >= requiredXP)
         {
-            currentExperience -= requiredXP;
+            currentExperience -=
+                requiredXP;
 
             careerLevel++;
 

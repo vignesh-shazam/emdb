@@ -6,11 +6,15 @@ public class BankTransaction
     public enum TransactionType
     {
         Deposit,
-        Withdraw
+        Withdraw,
+        EmiDebit,
+        BounceCharge
     }
 
     public TransactionType Type;
+
     public int Amount;
+
     public int BalanceAfterTransaction;
 
     public BankTransaction(
@@ -19,7 +23,9 @@ public class BankTransaction
         int balanceAfterTransaction)
     {
         Type = type;
+
         Amount = amount;
+
         BalanceAfterTransaction =
             balanceAfterTransaction;
     }

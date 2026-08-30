@@ -11,6 +11,10 @@ public class ExpenseManager : MonoBehaviour
     public IReadOnlyList<ExpenseTransaction> Transactions =>
         transactions;
 
+    // =========================
+    // AWAKE
+    // =========================
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -21,6 +25,10 @@ public class ExpenseManager : MonoBehaviour
 
         Instance = this;
     }
+
+    // =========================
+    // CAN AFFORD
+    // =========================
 
     public bool CanAfford(int amount)
     {
@@ -41,14 +49,60 @@ public class ExpenseManager : MonoBehaviour
         return MoneyManager.Instance.CanAfford(amount);
     }
 
+    // =========================
+    // SPEND
+    // =========================
+
     public bool Spend(int amount)
     {
-        return Spend(amount, ExpenseCategory.Other);
+        return Spend(
+            amount,
+            ExpenseCategory.Other,
+            FinanceAccountType.Employee
+        );
     }
+
+    // =========================
+    // SPEND - CATEGORY
+    // =========================
 
     public bool Spend(
         int amount,
         ExpenseCategory category)
+    {
+        return Spend(
+            amount,
+            category,
+            FinanceAccountType.Employee
+        );
+    }
+
+    // =========================
+    // SPEND - ACCOUNT
+    // =========================
+
+    public bool Spend(
+        int amount,
+        ExpenseCategory category,
+        FinanceAccountType accountType)
+    {
+        return Spend(
+            amount,
+            category,
+            accountType,
+            category.ToString()
+        );
+    }
+
+    // =========================
+    // SPEND - CUSTOM DESCRIPTION
+    // =========================
+
+    public bool Spend(
+        int amount,
+        ExpenseCategory category,
+        FinanceAccountType accountType,
+        string description)
     {
         if (amount <= 0)
         {
@@ -71,7 +125,7 @@ public class ExpenseManager : MonoBehaviour
         if (!MoneyManager.Instance.CanAfford(amount))
         {
             Debug.Log(
-                $"Expense rejected: {category}. " +
+                $"Expense rejected: {description}. " +
                 $"Insufficient funds for Rs. {amount:N0}."
             );
 
@@ -86,13 +140,29 @@ public class ExpenseManager : MonoBehaviour
             return false;
         }
 
+        // =========================
+        // EXISTING EXPENSE RECORD
+        // =========================
+
         RecordTransaction(
             amount,
             category
         );
 
+        // =========================
+        // FINANCE LEDGER RECORD
+        // =========================
+
+        RecordFinanceTransaction(
+            amount,
+            accountType,
+            description
+        );
+
         Debug.Log(
             $"Expense completed | " +
+            $"Account: {accountType} | " +
+            $"Description: {description} | " +
             $"Category: {category} | " +
             $"Amount: Rs. {amount:N0} | " +
             $"Remaining: Rs. " +
@@ -101,6 +171,10 @@ public class ExpenseManager : MonoBehaviour
 
         return true;
     }
+
+    // =========================
+    // RECORD EXISTING EXPENSE
+    // =========================
 
     private void RecordTransaction(
         int amount,
@@ -136,5 +210,37 @@ public class ExpenseManager : MonoBehaviour
             );
 
         transactions.Add(transaction);
+    }
+
+    // =========================
+    // RECORD FINANCE LEDGER
+    // =========================
+
+    private void RecordFinanceTransaction(
+        int amount,
+        FinanceAccountType accountType,
+        string description)
+    {
+        if (FinanceTransactionManager.Instance == null)
+        {
+            Debug.LogWarning(
+                "ExpenseManager: " +
+                "FinanceTransactionManager not found. " +
+                "Finance ledger entry skipped."
+            );
+
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            description = "Expense";
+        }
+
+        FinanceTransactionManager.Instance.RecordExpense(
+            accountType,
+            amount,
+            description
+        );
     }
 }

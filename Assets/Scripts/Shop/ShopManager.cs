@@ -65,11 +65,9 @@ public class ShopManager : MonoBehaviour
     // PURCHASE TRACKING
     // =========================
 
-    // Items currently owned by the player
     private readonly Dictionary<string, int> purchasedItems =
         new Dictionary<string, int>();
 
-    // Items purchased specifically for the current customer
     private readonly Dictionary<string, int> currentCustomerPurchases =
         new Dictionary<string, int>();
 
@@ -122,10 +120,6 @@ public class ShopManager : MonoBehaviour
 
     private void InitializeShop()
     {
-        // -------------------------
-        // SHOP LEVEL VALIDATION
-        // -------------------------
-
         if (shopUpgradeLevel < 1)
         {
             shopUpgradeLevel = 1;
@@ -143,10 +137,6 @@ public class ShopManager : MonoBehaviour
                 maximumUpgradeLevel;
         }
 
-        // -------------------------
-        // UPGRADE COST VALIDATION
-        // -------------------------
-
         if (baseUpgradeCost < 0)
         {
             baseUpgradeCost = 0;
@@ -156,10 +146,6 @@ public class ShopManager : MonoBehaviour
         {
             upgradeCostMultiplier = 1f;
         }
-
-        // -------------------------
-        // REVENUE VALIDATION
-        // -------------------------
 
         if (baseRevenueMultiplier < 0f)
         {
@@ -171,10 +157,6 @@ public class ShopManager : MonoBehaviour
             revenueIncreasePerUpgrade = 0f;
         }
 
-        // -------------------------
-        // CUSTOMER GROWTH VALIDATION
-        // -------------------------
-
         if (baseCustomerGrowthMultiplier < 0f)
         {
             baseCustomerGrowthMultiplier = 1f;
@@ -184,10 +166,6 @@ public class ShopManager : MonoBehaviour
         {
             customerGrowthPerUpgrade = 0f;
         }
-
-        // -------------------------
-        // DEFAULT ITEMS
-        // -------------------------
 
         if (shopItems.Count == 0)
         {
@@ -271,38 +249,41 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        if (MoneyManager.Instance == null)
+        int upgradeCost =
+            GetUpgradeCost();
+
+        if (ExpenseManager.Instance == null)
         {
             Debug.LogError(
                 "Shop upgrade failed: " +
-                "MoneyManager not found."
+                "ExpenseManager not found."
             );
 
             return false;
         }
 
-        int upgradeCost =
-            GetUpgradeCost();
+        // =========================
+        // SHOP UPGRADE EXPENSE
+        // =========================
 
-        if (!MoneyManager.Instance.CanAfford(
-                upgradeCost))
+        bool expenseSuccessful =
+            ExpenseManager.Instance.Spend(
+                upgradeCost,
+                ExpenseCategory.Shopping,
+                FinanceAccountType.Shop,
+                "Shop Upgrade"
+            );
+
+        if (!expenseSuccessful)
         {
             Debug.LogWarning(
                 $"Shop upgrade failed: " +
-                $"Insufficient money. " +
+                $"Insufficient funds. " +
                 $"Required: Rs. {upgradeCost:N0}"
             );
 
             return false;
         }
-
-        // =========================
-        // REMOVE MONEY
-        // =========================
-
-        MoneyManager.Instance.RemoveMoney(
-            upgradeCost
-        );
 
         // =========================
         // INCREASE LEVEL
@@ -311,7 +292,7 @@ public class ShopManager : MonoBehaviour
         shopUpgradeLevel++;
 
         Debug.Log(
-            $"⭐ SHOP UPGRADED | " +
+            $"SHOP UPGRADED | " +
             $"New Level: {shopUpgradeLevel} | " +
             $"Cost: Rs. {upgradeCost:N0} | " +
             $"Revenue Multiplier: {RevenueMultiplier:F2}x | " +
@@ -482,7 +463,7 @@ public class ShopManager : MonoBehaviour
         // =========================
 
         if (!MoneyManager.Instance.CanAfford(
-                item.BuyPrice))
+            item.BuyPrice))
         {
             Debug.LogWarning(
                 $"Buy failed: Insufficient money. " +
@@ -497,9 +478,20 @@ public class ShopManager : MonoBehaviour
         // REMOVE MONEY
         // =========================
 
-        MoneyManager.Instance.RemoveMoney(
-            item.BuyPrice
-        );
+        bool moneyRemoved =
+            MoneyManager.Instance.RemoveMoney(
+                item.BuyPrice
+            );
+
+        if (!moneyRemoved)
+        {
+            Debug.LogWarning(
+                $"Buy failed: Could not remove money. " +
+                $"Item: {item.ItemName}"
+            );
+
+            return false;
+        }
 
         // =========================
         // ADD INVENTORY
@@ -525,6 +517,14 @@ public class ShopManager : MonoBehaviour
 
             return false;
         }
+
+        // =========================
+        // RECORD SHOP PURCHASE
+        // =========================
+
+        RecordShopPurchase(
+            item
+        );
 
         // =========================
         // TRACK TOTAL OWNERSHIP
@@ -553,6 +553,42 @@ public class ShopManager : MonoBehaviour
         );
 
         return true;
+    }
+
+    // =========================
+    // RECORD SHOP PURCHASE
+    // =========================
+
+    private void RecordShopPurchase(
+        ShopItem item)
+    {
+        if (item == null)
+        {
+            return;
+        }
+
+        if (FinanceTransactionManager.Instance == null)
+        {
+            Debug.LogWarning(
+                "ShopManager: " +
+                "FinanceTransactionManager not found. " +
+                "Shop purchase ledger entry skipped."
+            );
+
+            return;
+        }
+
+        FinanceTransactionManager.Instance.RecordExpense(
+            FinanceAccountType.Shop,
+            item.BuyPrice,
+            "Shop Purchase"
+        );
+
+        Debug.Log(
+            $"Shop purchase recorded | " +
+            $"Item: {item.ItemName} | " +
+            $"Amount: Rs. {item.BuyPrice:N0}"
+        );
     }
 
     // =========================================================
