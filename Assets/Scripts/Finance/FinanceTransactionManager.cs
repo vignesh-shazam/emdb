@@ -5,15 +5,19 @@ public class FinanceTransactionManager : MonoBehaviour
 {
     public static FinanceTransactionManager Instance { get; private set; }
 
+    // =========================================================
+    // TRANSACTION HISTORY
+    // =========================================================
+
     private readonly List<FinanceTransaction> transactions =
         new List<FinanceTransaction>();
 
     public IReadOnlyList<FinanceTransaction> Transactions =>
         transactions;
 
-    // =========================
+    // =========================================================
     // AWAKE
-    // =========================
+    // =========================================================
 
     private void Awake()
     {
@@ -27,9 +31,9 @@ public class FinanceTransactionManager : MonoBehaviour
         Instance = this;
     }
 
-    // =========================
+    // =========================================================
     // RECORD INCOME
-    // =========================
+    // =========================================================
 
     public void RecordIncome(
         FinanceAccountType accountType,
@@ -46,6 +50,16 @@ public class FinanceTransactionManager : MonoBehaviour
             return;
         }
 
+        if (!IsValidAccountType(accountType))
+        {
+            Debug.LogWarning(
+                $"FinanceTransactionManager: " +
+                $"Invalid account type: {accountType}"
+            );
+
+            return;
+        }
+
         AddTransaction(
             accountType,
             true,
@@ -54,9 +68,9 @@ public class FinanceTransactionManager : MonoBehaviour
         );
     }
 
-    // =========================
+    // =========================================================
     // RECORD EXPENSE
-    // =========================
+    // =========================================================
 
     public void RecordExpense(
         FinanceAccountType accountType,
@@ -73,6 +87,16 @@ public class FinanceTransactionManager : MonoBehaviour
             return;
         }
 
+        if (!IsValidAccountType(accountType))
+        {
+            Debug.LogWarning(
+                $"FinanceTransactionManager: " +
+                $"Invalid account type: {accountType}"
+            );
+
+            return;
+        }
+
         AddTransaction(
             accountType,
             false,
@@ -81,9 +105,21 @@ public class FinanceTransactionManager : MonoBehaviour
         );
     }
 
-    // =========================
+    // =========================================================
+    // VALIDATE ACCOUNT TYPE
+    // =========================================================
+
+    private bool IsValidAccountType(
+        FinanceAccountType accountType)
+    {
+        return
+            accountType == FinanceAccountType.Savings ||
+            accountType == FinanceAccountType.Current;
+    }
+
+    // =========================================================
     // ADD TRANSACTION
-    // =========================
+    // =========================================================
 
     private void AddTransaction(
         FinanceAccountType accountType,
@@ -91,10 +127,32 @@ public class FinanceTransactionManager : MonoBehaviour
         int amount,
         string description)
     {
+        // =====================================================
+        // ACCOUNT VALIDATION
+        // =====================================================
+
+        if (!IsValidAccountType(accountType))
+        {
+            Debug.LogWarning(
+                $"FinanceTransactionManager: " +
+                $"Invalid account type: {accountType}"
+            );
+
+            return;
+        }
+
+        // =====================================================
+        // DESCRIPTION
+        // =====================================================
+
         if (string.IsNullOrWhiteSpace(description))
         {
             description = "Transaction";
         }
+
+        // =====================================================
+        // GAME TIME
+        // =====================================================
 
         int day = 0;
         int hour = 0;
@@ -112,6 +170,10 @@ public class FinanceTransactionManager : MonoBehaviour
                 GameTimeManager.Instance.CurrentMinute;
         }
 
+        // =====================================================
+        // CREATE TRANSACTION
+        // =====================================================
+
         FinanceTransaction transaction =
             new FinanceTransaction(
                 accountType,
@@ -123,7 +185,15 @@ public class FinanceTransactionManager : MonoBehaviour
                 minute
             );
 
+        // =====================================================
+        // ADD TO HISTORY
+        // =====================================================
+
         transactions.Add(transaction);
+
+        // =====================================================
+        // LOG
+        // =====================================================
 
         Debug.Log(
             $"Finance transaction recorded | " +
@@ -136,9 +206,9 @@ public class FinanceTransactionManager : MonoBehaviour
         );
     }
 
-    // =========================
+    // =========================================================
     // TOTAL INCOME
-    // =========================
+    // =========================================================
 
     public int GetTotalIncome(
         FinanceAccountType accountType)
@@ -166,9 +236,9 @@ public class FinanceTransactionManager : MonoBehaviour
         return total;
     }
 
-    // =========================
+    // =========================================================
     // TOTAL EXPENSE
-    // =========================
+    // =========================================================
 
     public int GetTotalExpense(
         FinanceAccountType accountType)
@@ -196,9 +266,9 @@ public class FinanceTransactionManager : MonoBehaviour
         return total;
     }
 
-    // =========================
+    // =========================================================
     // NET BALANCE
-    // =========================
+    // =========================================================
 
     public int GetNetBalance(
         FinanceAccountType accountType)
@@ -208,9 +278,9 @@ public class FinanceTransactionManager : MonoBehaviour
             GetTotalExpense(accountType);
     }
 
-    // =========================
-    // TODAY INCOME
-    // =========================
+    // =========================================================
+    // INCOME FOR DAY
+    // =========================================================
 
     public int GetIncomeForDay(
         FinanceAccountType accountType,
@@ -244,9 +314,9 @@ public class FinanceTransactionManager : MonoBehaviour
         return total;
     }
 
-    // =========================
-    // TODAY EXPENSE
-    // =========================
+    // =========================================================
+    // EXPENSE FOR DAY
+    // =========================================================
 
     public int GetExpenseForDay(
         FinanceAccountType accountType,
@@ -280,9 +350,9 @@ public class FinanceTransactionManager : MonoBehaviour
         return total;
     }
 
-    // =========================
-    // TODAY NET
-    // =========================
+    // =========================================================
+    // NET FOR DAY
+    // =========================================================
 
     public int GetNetForDay(
         FinanceAccountType accountType,
@@ -299,9 +369,9 @@ public class FinanceTransactionManager : MonoBehaviour
             );
     }
 
-    // =========================
+    // =========================================================
     // TRANSACTION COUNT
-    // =========================
+    // =========================================================
 
     public int GetTransactionCount(
         FinanceAccountType accountType)
@@ -322,9 +392,9 @@ public class FinanceTransactionManager : MonoBehaviour
         return count;
     }
 
-    // =========================
+    // =========================================================
     // CLEAR HISTORY
-    // =========================
+    // =========================================================
 
     public void ClearHistory()
     {

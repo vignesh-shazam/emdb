@@ -6,98 +6,78 @@ public class FinanceUI : MonoBehaviour
 {
     public static FinanceUI Instance { get; private set; }
 
-    // =========================
+    // =========================================================
     // FINANCE UI
-    // =========================
+    // =========================================================
 
     [Header("Finance UI")]
     [SerializeField]
     private GameObject financePanel;
 
-    // =========================
+    // =========================================================
     // INPUT
-    // =========================
+    // =========================================================
 
     [Header("Input")]
     [SerializeField]
     private Key toggleKey = Key.Q;
 
-    // =========================
-    // EMPLOYEE ACCOUNT
-    // =========================
+    // =========================================================
+    // SAVINGS ACCOUNT
+    // =========================================================
 
-    [Header("Employee Account")]
+    [Header("Savings Account")]
     [SerializeField]
-    private TextMeshProUGUI employeeBalanceText;
-
-    [SerializeField]
-    private TextMeshProUGUI employeeIncomeText;
+    private TextMeshProUGUI savingsBalanceText;
 
     [SerializeField]
-    private TextMeshProUGUI employeeExpenseText;
+    private TextMeshProUGUI savingsIncomeText;
 
     [SerializeField]
-    private TextMeshProUGUI employeeNetText;
-
-    // =========================
-    // SHOP ACCOUNT
-    // =========================
-
-    [Header("Shop Account")]
-    [SerializeField]
-    private TextMeshProUGUI shopBalanceText;
+    private TextMeshProUGUI savingsExpenseText;
 
     [SerializeField]
-    private TextMeshProUGUI shopIncomeText;
+    private TextMeshProUGUI savingsNetText;
+
+    // =========================================================
+    // CURRENT ACCOUNT
+    // =========================================================
+
+    [Header("Current Account")]
+    [SerializeField]
+    private TextMeshProUGUI currentBalanceText;
 
     [SerializeField]
-    private TextMeshProUGUI shopExpenseText;
+    private TextMeshProUGUI currentIncomeText;
 
     [SerializeField]
-    private TextMeshProUGUI shopNetText;
-
-    // =========================
-    // MERGED ACCOUNT
-    // =========================
-
-    [Header("Merged Account")]
-    [SerializeField]
-    private TextMeshProUGUI mergedBalanceText;
+    private TextMeshProUGUI currentExpenseText;
 
     [SerializeField]
-    private TextMeshProUGUI mergedIncomeText;
+    private TextMeshProUGUI currentNetText;
 
-    [SerializeField]
-    private TextMeshProUGUI mergedExpenseText;
-
-    [SerializeField]
-    private TextMeshProUGUI mergedNetText;
-
-    // =========================
+    // =========================================================
     // SECTIONS
-    // =========================
+    // =========================================================
 
     [Header("Sections")]
     [SerializeField]
-    private GameObject employeeSection;
+    private GameObject savingsSection;
 
     [SerializeField]
-    private GameObject shopSection;
+    private GameObject currentSection;
 
-    [SerializeField]
-    private GameObject mergedSection;
-
-    // =========================
+    // =========================================================
     // PUBLIC
-    // =========================
+    // =========================================================
 
     public bool IsOpen =>
         financePanel != null &&
         financePanel.activeSelf;
 
-    // =========================
+    // =========================================================
     // AWAKE
-    // =========================
+    // =========================================================
 
     private void Awake()
     {
@@ -113,9 +93,9 @@ public class FinanceUI : MonoBehaviour
         InitializeUI();
     }
 
-    // =========================
+    // =========================================================
     // INITIALIZE
-    // =========================
+    // =========================================================
 
     private void InitializeUI()
     {
@@ -133,9 +113,9 @@ public class FinanceUI : MonoBehaviour
         ClearUI();
     }
 
-    // =========================
+    // =========================================================
     // UPDATE
-    // =========================
+    // =========================================================
 
     private void Update()
     {
@@ -151,9 +131,9 @@ public class FinanceUI : MonoBehaviour
         }
     }
 
-    // =========================
+    // =========================================================
     // TOGGLE
-    // =========================
+    // =========================================================
 
     public void ToggleFinanceUI()
     {
@@ -176,9 +156,9 @@ public class FinanceUI : MonoBehaviour
         }
     }
 
-    // =========================
+    // =========================================================
     // OPEN
-    // =========================
+    // =========================================================
 
     public void OpenFinanceUI()
     {
@@ -200,9 +180,9 @@ public class FinanceUI : MonoBehaviour
         );
     }
 
-    // =========================
+    // =========================================================
     // CLOSE
-    // =========================
+    // =========================================================
 
     public void CloseFinanceUI()
     {
@@ -218,9 +198,9 @@ public class FinanceUI : MonoBehaviour
         );
     }
 
-    // =========================
+    // =========================================================
     // SET VISIBILITY
-    // =========================
+    // =========================================================
 
     public void SetFinanceUIVisible(
         bool visible)
@@ -252,15 +232,9 @@ public class FinanceUI : MonoBehaviour
 
         UpdateAccountSections();
 
-        if (FinanceAccountManager.Instance.IsMergedAccount)
-        {
-            UpdateMergedAccount();
-        }
-        else
-        {
-            UpdateEmployeeAccount();
-            UpdateShopAccount();
-        }
+        UpdateSavingsAccount();
+
+        UpdateCurrentAccount();
     }
 
     // =========================================================
@@ -269,38 +243,38 @@ public class FinanceUI : MonoBehaviour
 
     private void UpdateAccountSections()
     {
-        bool merged =
-            FinanceAccountManager.Instance != null &&
-            FinanceAccountManager.Instance.IsMergedAccount;
+        FinanceAccountType selectedAccount =
+            FinanceAccountManager.Instance.AccountType;
 
-        if (employeeSection != null)
+        bool savings =
+            selectedAccount == FinanceAccountType.Savings;
+
+        bool current =
+            selectedAccount == FinanceAccountType.Current;
+
+        if (savingsSection != null)
         {
-            employeeSection.SetActive(!merged);
+            savingsSection.SetActive(savings);
         }
 
-        if (shopSection != null)
+        if (currentSection != null)
         {
-            shopSection.SetActive(!merged);
-        }
-
-        if (mergedSection != null)
-        {
-            mergedSection.SetActive(merged);
+            currentSection.SetActive(current);
         }
     }
 
     // =========================================================
-    // EMPLOYEE ACCOUNT
+    // SAVINGS ACCOUNT
     // =========================================================
 
-    private void UpdateEmployeeAccount()
+    private void UpdateSavingsAccount()
     {
         FinanceAccountType account =
-            FinanceAccountType.Employee;
+            FinanceAccountType.Savings;
 
         int balance =
             FinanceAccountManager.Instance
-                .EmployeeBalance;
+                .SavingsBalance;
 
         int income =
             GetTotalIncome(account);
@@ -311,43 +285,43 @@ public class FinanceUI : MonoBehaviour
         int net =
             income - expense;
 
-        if (employeeBalanceText != null)
+        if (savingsBalanceText != null)
         {
-            employeeBalanceText.text =
+            savingsBalanceText.text =
                 $"Balance: Rs. {balance:N0}";
         }
 
-        if (employeeIncomeText != null)
+        if (savingsIncomeText != null)
         {
-            employeeIncomeText.text =
+            savingsIncomeText.text =
                 $"Income: Rs. {income:N0}";
         }
 
-        if (employeeExpenseText != null)
+        if (savingsExpenseText != null)
         {
-            employeeExpenseText.text =
+            savingsExpenseText.text =
                 $"Expense: Rs. {expense:N0}";
         }
 
-        if (employeeNetText != null)
+        if (savingsNetText != null)
         {
-            employeeNetText.text =
+            savingsNetText.text =
                 $"Net: Rs. {net:N0}";
         }
     }
 
     // =========================================================
-    // SHOP ACCOUNT
+    // CURRENT ACCOUNT
     // =========================================================
 
-    private void UpdateShopAccount()
+    private void UpdateCurrentAccount()
     {
         FinanceAccountType account =
-            FinanceAccountType.Shop;
+            FinanceAccountType.Current;
 
         int balance =
             FinanceAccountManager.Instance
-                .ShopBalance;
+                .CurrentBalance;
 
         int income =
             GetTotalIncome(account);
@@ -358,103 +332,28 @@ public class FinanceUI : MonoBehaviour
         int net =
             income - expense;
 
-        if (shopBalanceText != null)
+        if (currentBalanceText != null)
         {
-            shopBalanceText.text =
+            currentBalanceText.text =
                 $"Balance: Rs. {balance:N0}";
         }
 
-        if (shopIncomeText != null)
+        if (currentIncomeText != null)
         {
-            shopIncomeText.text =
+            currentIncomeText.text =
                 $"Income: Rs. {income:N0}";
         }
 
-        if (shopExpenseText != null)
+        if (currentExpenseText != null)
         {
-            shopExpenseText.text =
+            currentExpenseText.text =
                 $"Expense: Rs. {expense:N0}";
         }
 
-        if (shopNetText != null)
+        if (currentNetText != null)
         {
-            shopNetText.text =
+            currentNetText.text =
                 $"Net: Rs. {net:N0}";
-        }
-    }
-
-    // =========================================================
-    // MERGED ACCOUNT
-    // =========================================================
-
-    private void UpdateMergedAccount()
-    {
-        int employeeBalance =
-            FinanceAccountManager.Instance
-                .EmployeeBalance;
-
-        int shopBalance =
-            FinanceAccountManager.Instance
-                .ShopBalance;
-
-        int mergedBalance =
-            employeeBalance +
-            shopBalance;
-
-        int employeeIncome =
-            GetTotalIncome(
-                FinanceAccountType.Employee
-            );
-
-        int shopIncome =
-            GetTotalIncome(
-                FinanceAccountType.Shop
-            );
-
-        int employeeExpense =
-            GetTotalExpense(
-                FinanceAccountType.Employee
-            );
-
-        int shopExpense =
-            GetTotalExpense(
-                FinanceAccountType.Shop
-            );
-
-        int mergedIncome =
-            employeeIncome +
-            shopIncome;
-
-        int mergedExpense =
-            employeeExpense +
-            shopExpense;
-
-        int mergedNet =
-            mergedIncome -
-            mergedExpense;
-
-        if (mergedBalanceText != null)
-        {
-            mergedBalanceText.text =
-                $"Balance: Rs. {mergedBalance:N0}";
-        }
-
-        if (mergedIncomeText != null)
-        {
-            mergedIncomeText.text =
-                $"Income: Rs. {mergedIncome:N0}";
-        }
-
-        if (mergedExpenseText != null)
-        {
-            mergedExpenseText.text =
-                $"Expense: Rs. {mergedExpense:N0}";
-        }
-
-        if (mergedNetText != null)
-        {
-            mergedNetText.text =
-                $"Net: Rs. {mergedNet:N0}";
         }
     }
 
@@ -496,75 +395,51 @@ public class FinanceUI : MonoBehaviour
 
     private void ClearUI()
     {
-        if (employeeBalanceText != null)
+        if (savingsBalanceText != null)
         {
-            employeeBalanceText.text =
+            savingsBalanceText.text =
                 "Balance: Rs. 0";
         }
 
-        if (employeeIncomeText != null)
+        if (savingsIncomeText != null)
         {
-            employeeIncomeText.text =
+            savingsIncomeText.text =
                 "Income: Rs. 0";
         }
 
-        if (employeeExpenseText != null)
+        if (savingsExpenseText != null)
         {
-            employeeExpenseText.text =
+            savingsExpenseText.text =
                 "Expense: Rs. 0";
         }
 
-        if (employeeNetText != null)
+        if (savingsNetText != null)
         {
-            employeeNetText.text =
+            savingsNetText.text =
                 "Net: Rs. 0";
         }
 
-        if (shopBalanceText != null)
+        if (currentBalanceText != null)
         {
-            shopBalanceText.text =
+            currentBalanceText.text =
                 "Balance: Rs. 0";
         }
 
-        if (shopIncomeText != null)
+        if (currentIncomeText != null)
         {
-            shopIncomeText.text =
+            currentIncomeText.text =
                 "Income: Rs. 0";
         }
 
-        if (shopExpenseText != null)
+        if (currentExpenseText != null)
         {
-            shopExpenseText.text =
+            currentExpenseText.text =
                 "Expense: Rs. 0";
         }
 
-        if (shopNetText != null)
+        if (currentNetText != null)
         {
-            shopNetText.text =
-                "Net: Rs. 0";
-        }
-
-        if (mergedBalanceText != null)
-        {
-            mergedBalanceText.text =
-                "Balance: Rs. 0";
-        }
-
-        if (mergedIncomeText != null)
-        {
-            mergedIncomeText.text =
-                "Income: Rs. 0";
-        }
-
-        if (mergedExpenseText != null)
-        {
-            mergedExpenseText.text =
-                "Expense: Rs. 0";
-        }
-
-        if (mergedNetText != null)
-        {
-            mergedNetText.text =
+            currentNetText.text =
                 "Net: Rs. 0";
         }
     }

@@ -1,6 +1,5 @@
 ﻿public enum FinanceAccountType
 {
-    Employee,
-    Shop,
-    Merged
+    Savings,
+    Current
 }

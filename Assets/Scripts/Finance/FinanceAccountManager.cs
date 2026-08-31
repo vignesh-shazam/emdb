@@ -4,49 +4,81 @@ public class FinanceAccountManager : MonoBehaviour
 {
     public static FinanceAccountManager Instance { get; private set; }
 
-    [Header("Account State")]
+    [Header("Selected Finance Account")]
     [SerializeField]
     private FinanceAccountType accountType =
-        FinanceAccountType.Employee;
+        FinanceAccountType.Savings;
 
-    // =========================
+    // =========================================================
     // ACCOUNT STATE
-    // =========================
+    // =========================================================
 
     public FinanceAccountType AccountType =>
         accountType;
 
-    public bool IsEmployeeAccount =>
-        accountType == FinanceAccountType.Employee;
+    public bool IsSavingsAccount =>
+        accountType == FinanceAccountType.Savings;
 
-    public bool IsShopAccount =>
-        accountType == FinanceAccountType.Shop;
-
-    public bool IsMergedAccount =>
-        accountType == FinanceAccountType.Merged;
+    public bool IsCurrentAccount =>
+        accountType == FinanceAccountType.Current;
 
     // =========================================================
-    // CASH BALANCE
+    // ACCOUNT DISPLAY NAME
     // =========================================================
 
-    public int CashBalance
+    public string AccountDisplayName
     {
         get
         {
-            if (MoneyManager.Instance == null)
+            switch (accountType)
             {
-                return 0;
-            }
+                case FinanceAccountType.Savings:
+                    return "SAVINGS";
 
-            return MoneyManager.Instance.CurrentMoney;
+                case FinanceAccountType.Current:
+                    return "CURRENT";
+
+                default:
+                    return "SAVINGS";
+            }
         }
     }
 
     // =========================================================
-    // BANK BALANCE
+    // ACCOUNT PURPOSE
     // =========================================================
 
-    public int BankBalance
+    public string AccountPurpose
+    {
+        get
+        {
+            switch (accountType)
+            {
+                case FinanceAccountType.Savings:
+                    return "Personal";
+
+                case FinanceAccountType.Current:
+                    return "Business";
+
+                default:
+                    return "Personal";
+            }
+        }
+    }
+
+    // =========================================================
+    // SELECTED ACCOUNT BALANCE
+    // =========================================================
+    // IMPORTANT:
+    // BankManager will be updated next to maintain:
+    //
+    // Savings Balance
+    // Current Balance
+    //
+    // No Cash In Hand.
+    // =========================================================
+
+    public int SelectedAccountBalance
     {
         get
         {
@@ -55,23 +87,53 @@ public class FinanceAccountManager : MonoBehaviour
                 return 0;
             }
 
-            return BankManager.Instance.Balance;
+            return BankManager.Instance.GetBalance(
+                accountType
+            );
         }
     }
 
     // =========================================================
-    // EMPLOYEE TOTAL BALANCE
+    // SAVINGS BALANCE
     // =========================================================
 
-    public int EmployeeBalance =>
-        CashBalance +
-        BankBalance;
+    public int SavingsBalance
+    {
+        get
+        {
+            if (BankManager.Instance == null)
+            {
+                return 0;
+            }
+
+            return BankManager.Instance.GetBalance(
+                FinanceAccountType.Savings
+            );
+        }
+    }
 
     // =========================================================
-    // SHOP INCOME
+    // CURRENT BALANCE
     // =========================================================
 
-    public int ShopIncome
+    public int CurrentBalance
+    {
+        get
+        {
+            if (BankManager.Instance == null)
+            {
+                return 0;
+            }
+
+            return BankManager.Instance.GetBalance(FinanceAccountType.Current);
+        }
+    }
+
+    // =========================================================
+    // SAVINGS INCOME
+    // =========================================================
+
+    public int SavingsIncome
     {
         get
         {
@@ -82,16 +144,16 @@ public class FinanceAccountManager : MonoBehaviour
 
             return FinanceTransactionManager.Instance
                 .GetTotalIncome(
-                    FinanceAccountType.Shop
+                    FinanceAccountType.Savings
                 );
         }
     }
 
     // =========================================================
-    // SHOP EXPENSE
+    // SAVINGS EXPENSE
     // =========================================================
 
-    public int ShopExpense
+    public int SavingsExpense
     {
         get
         {
@@ -102,24 +164,24 @@ public class FinanceAccountManager : MonoBehaviour
 
             return FinanceTransactionManager.Instance
                 .GetTotalExpense(
-                    FinanceAccountType.Shop
+                    FinanceAccountType.Savings
                 );
         }
     }
 
     // =========================================================
-    // SHOP NET
+    // SAVINGS NET
     // =========================================================
 
-    public int ShopNet =>
-        ShopIncome -
-        ShopExpense;
+    public int SavingsNet =>
+        SavingsIncome -
+        SavingsExpense;
 
     // =========================================================
-    // EMPLOYEE INCOME
+    // CURRENT INCOME
     // =========================================================
 
-    public int EmployeeIncome
+    public int CurrentIncome
     {
         get
         {
@@ -130,16 +192,16 @@ public class FinanceAccountManager : MonoBehaviour
 
             return FinanceTransactionManager.Instance
                 .GetTotalIncome(
-                    FinanceAccountType.Employee
+                    FinanceAccountType.Current
                 );
         }
     }
 
     // =========================================================
-    // EMPLOYEE EXPENSE
+    // CURRENT EXPENSE
     // =========================================================
 
-    public int EmployeeExpense
+    public int CurrentExpense
     {
         get
         {
@@ -150,26 +212,18 @@ public class FinanceAccountManager : MonoBehaviour
 
             return FinanceTransactionManager.Instance
                 .GetTotalExpense(
-                    FinanceAccountType.Employee
+                    FinanceAccountType.Current
                 );
         }
     }
 
     // =========================================================
-    // EMPLOYEE NET
+    // CURRENT NET
     // =========================================================
 
-    public int EmployeeNet =>
-        EmployeeIncome -
-        EmployeeExpense;
-
-    // =========================================================
-    // MERGED TOTAL BALANCE
-    // =========================================================
-
-    public int MergedBalance =>
-        CashBalance +
-        BankBalance;
+    public int CurrentNet =>
+        CurrentIncome -
+        CurrentExpense;
 
     // =========================================================
     // AWAKE
@@ -186,87 +240,39 @@ public class FinanceAccountManager : MonoBehaviour
 
         Instance = this;
 
-        ValidateState();
-    }
-
-    // =========================================================
-    // VALIDATE
-    // =========================================================
-
-    private void ValidateState()
-    {
-        if (accountType != FinanceAccountType.Employee &&
-            accountType != FinanceAccountType.Shop &&
-            accountType != FinanceAccountType.Merged)
-        {
-            accountType =
-                FinanceAccountType.Employee;
-        }
-
         Debug.Log(
             $"Finance Account Manager initialized | " +
-            $"Account: {accountType}"
+            $"Selected Account: {AccountDisplayName} | " +
+            $"Purpose: {AccountPurpose}"
         );
     }
 
     // =========================================================
-    // SWITCH TO SHOP
+    // SWITCH TO SAVINGS
     // =========================================================
 
-    public void SwitchToShopAccount()
+    public void SwitchToSavingsAccount()
     {
-        if (IsMergedAccount)
-        {
-            Debug.LogWarning(
-                "Finance account is already merged."
-            );
-
-            return;
-        }
-
         accountType =
-            FinanceAccountType.Shop;
+            FinanceAccountType.Savings;
 
         Debug.Log(
-            "Finance account changed to Shop."
+            "Finance account changed to SAVINGS."
         );
     }
 
     // =========================================================
-    // MERGE ACCOUNTS
+    // SWITCH TO CURRENT
     // =========================================================
 
-    public bool MergeAccounts()
+    public void SwitchToCurrentAccount()
     {
-        if (IsMergedAccount)
-        {
-            Debug.LogWarning(
-                "Finance accounts are already merged."
-            );
-
-            return false;
-        }
-
-        int cash =
-            CashBalance;
-
-        int bank =
-            BankBalance;
-
-        int total =
-            cash + bank;
-
         accountType =
-            FinanceAccountType.Merged;
+            FinanceAccountType.Current;
 
         Debug.Log(
-            $"Finance account merged | " +
-            $"Cash: Rs. {cash:N0} | " +
-            $"Bank: Rs. {bank:N0} | " +
-            $"Total: Rs. {total:N0}"
+            "Finance account changed to CURRENT."
         );
-
-        return true;
     }
 
     // =========================================================
@@ -279,34 +285,35 @@ public class FinanceAccountManager : MonoBehaviour
         accountType = type;
 
         Debug.Log(
-            $"Finance account type changed to: {type}"
+            $"Finance account changed to: " +
+            $"{AccountDisplayName}"
         );
     }
 
     // =========================================================
-    // SHOP RESULT
+    // SELECTED ACCOUNT BALANCE
     // =========================================================
 
-    public int GetShopNet()
+    public int GetSelectedAccountBalance()
     {
-        return ShopNet;
+        return SelectedAccountBalance;
     }
 
     // =========================================================
-    // EMPLOYEE TOTAL BALANCE
+    // SAVINGS BALANCE
     // =========================================================
 
-    public int GetEmployeeBalance()
+    public int GetSavingsBalance()
     {
-        return EmployeeBalance;
+        return SavingsBalance;
     }
 
     // =========================================================
-    // MERGED BALANCE
+    // CURRENT BALANCE
     // =========================================================
 
-    public int GetMergedBalance()
+    public int GetCurrentBalance()
     {
-        return MergedBalance;
+        return CurrentBalance;
     }
 }

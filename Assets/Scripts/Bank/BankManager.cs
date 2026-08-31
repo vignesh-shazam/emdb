@@ -5,20 +5,37 @@ public class BankManager : MonoBehaviour
 {
     public static BankManager Instance { get; private set; }
 
-    // =========================
-    // BANK ACCOUNT
-    // =========================
+    // =========================================================
+    // SAVINGS ACCOUNT
+    // =========================================================
 
-    [Header("Bank Account")]
+    [Header("Savings Account")]
     [SerializeField]
-    private string accountNumber = "EMDB001";
+    private string savingsAccountNumber = "SV-1001";
 
     [SerializeField]
-    private int startingBalance = 0;
+    private string savingsAccountName = "Vignesh";
 
-    // =========================
+    [SerializeField]
+    private int savingsStartingBalance = 0;
+
+    // =========================================================
+    // CURRENT ACCOUNT
+    // =========================================================
+
+    [Header("Current Account")]
+    [SerializeField]
+    private string currentAccountNumber = "CA-1001";
+
+    [SerializeField]
+    private string currentAccountName = "Shop";
+
+    [SerializeField]
+    private int currentStartingBalance = 0;
+
+    // =========================================================
     // MONTHLY EMI
-    // =========================
+    // =========================================================
 
     [Header("Monthly EMI")]
     [SerializeField]
@@ -30,37 +47,101 @@ public class BankManager : MonoBehaviour
     [SerializeField]
     private int bounceCharge = 500;
 
-    // =========================
+    // =========================================================
     // EMI STATE
-    // =========================
+    // =========================================================
 
     private readonly List<int> overdueEmiMonths =
         new List<int>();
 
     private int lastEmiProcessedMonth = -1;
 
-    // =========================
-    // BANK DATA
-    // =========================
+    // =========================================================
+    // BANK ACCOUNTS
+    // =========================================================
 
-    private BankAccount bankAccount;
+    private BankAccount savingsAccount;
+
+    private BankAccount currentAccount;
+
+    // =========================================================
+    // BANK TRANSACTIONS
+    // =========================================================
 
     private readonly List<BankTransaction> transactions =
         new List<BankTransaction>();
 
-    // =========================
-    // PUBLIC PROPERTIES
-    // =========================
+    // =========================================================
+    // PUBLIC ACCOUNT DATA
+    // =========================================================
 
-    public string AccountNumber =>
-        bankAccount != null
-            ? bankAccount.AccountNumber
+    public BankAccount SavingsAccount =>
+        savingsAccount;
+
+    public BankAccount CurrentAccount =>
+        currentAccount;
+
+    // =========================================================
+    // SAVINGS ACCOUNT DETAILS
+    // =========================================================
+
+    public string SavingsAccountNumber =>
+        savingsAccount != null
+            ? savingsAccount.AccountNumber
             : string.Empty;
 
-    public int Balance =>
-        bankAccount != null
-            ? bankAccount.Balance
+    public string SavingsAccountName =>
+        savingsAccount != null
+            ? savingsAccount.AccountName
+            : string.Empty;
+
+    public int SavingsBalance =>
+        savingsAccount != null
+            ? savingsAccount.Balance
             : 0;
+
+    // =========================================================
+    // CURRENT ACCOUNT DETAILS
+    // =========================================================
+
+    public string CurrentAccountNumber =>
+        currentAccount != null
+            ? currentAccount.AccountNumber
+            : string.Empty;
+
+    public string CurrentAccountName =>
+        currentAccount != null
+            ? currentAccount.AccountName
+            : string.Empty;
+
+    public int CurrentBalance =>
+        currentAccount != null
+            ? currentAccount.Balance
+            : 0;
+
+    // =========================================================
+    // SELECTED ACCOUNT BALANCE
+    // =========================================================
+
+    public int GetBalance(
+        FinanceAccountType accountType)
+    {
+        switch (accountType)
+        {
+            case FinanceAccountType.Savings:
+                return SavingsBalance;
+
+            case FinanceAccountType.Current:
+                return CurrentBalance;
+
+            default:
+                return 0;
+        }
+    }
+
+    // =========================================================
+    // EMI INFORMATION
+    // =========================================================
 
     public int MonthlyEmiAmount =>
         monthlyEmiAmount;
@@ -71,19 +152,23 @@ public class BankManager : MonoBehaviour
     public int BounceCharge =>
         bounceCharge;
 
+    // =========================================================
+    // BANK TRANSACTIONS
+    // =========================================================
+
     public IReadOnlyList<BankTransaction> Transactions =>
         transactions;
 
-    // =========================
+    // =========================================================
     // OVERDUE EMI COUNT
-    // =========================
+    // =========================================================
 
     public int OverdueEmiCount =>
         overdueEmiMonths.Count;
 
-    // =========================
+    // =========================================================
     // AWAKE
-    // =========================
+    // =========================================================
 
     private void Awake()
     {
@@ -96,61 +181,98 @@ public class BankManager : MonoBehaviour
 
         Instance = this;
 
-        InitializeAccount();
+        InitializeAccounts();
     }
 
-    // =========================
+    // =========================================================
     // UPDATE
-    // =========================
+    // =========================================================
 
     private void Update()
     {
         ProcessMonthlyEMI();
     }
 
-    // =========================
-    // INITIALIZE ACCOUNT
-    // =========================
+    // =========================================================
+    // INITIALIZE ACCOUNTS
+    // =========================================================
 
-    private void InitializeAccount()
+    private void InitializeAccounts()
     {
-        if (startingBalance < 0)
-        {
-            startingBalance = 0;
-        }
+        savingsStartingBalance =
+            Mathf.Max(0, savingsStartingBalance);
 
-        if (monthlyEmiAmount < 0)
-        {
-            monthlyEmiAmount = 0;
-        }
+        currentStartingBalance =
+            Mathf.Max(0, currentStartingBalance);
+
+        monthlyEmiAmount =
+            Mathf.Max(0, monthlyEmiAmount);
 
         if (emiDueDay < 1)
         {
             emiDueDay = 3;
         }
 
-        if (bounceCharge < 0)
-        {
-            bounceCharge = 0;
-        }
+        bounceCharge =
+            Mathf.Max(0, bounceCharge);
 
-        bankAccount = new BankAccount(
-            accountNumber,
-            startingBalance
-        );
+        // =====================================================
+        // SAVINGS
+        // =====================================================
+
+        savingsAccount =
+            new BankAccount(
+                savingsAccountNumber,
+                savingsAccountName,
+                FinanceAccountType.Savings,
+                savingsStartingBalance
+            );
+
+        // =====================================================
+        // CURRENT
+        // =====================================================
+
+        currentAccount =
+            new BankAccount(
+                currentAccountNumber,
+                currentAccountName,
+                FinanceAccountType.Current,
+                currentStartingBalance
+            );
 
         overdueEmiMonths.Clear();
+
+        transactions.Clear();
 
         lastEmiProcessedMonth = -1;
 
         Debug.Log(
             $"Bank initialized | " +
-            $"Account: {bankAccount.AccountNumber} | " +
-            $"Balance: Rs. {bankAccount.Balance:N0} | " +
-            $"Monthly EMI: Rs. {monthlyEmiAmount:N0} | " +
-            $"EMI Day: {emiDueDay} | " +
-            $"Bounce Charge: Rs. {bounceCharge:N0}"
+            $"Savings: {SavingsAccountNumber} | " +
+            $"Balance: Rs. {SavingsBalance:N0} | " +
+            $"Current: {CurrentAccountNumber} | " +
+            $"Balance: Rs. {CurrentBalance:N0}"
         );
+    }
+
+    // =========================================================
+    // GET ACCOUNT
+    // =========================================================
+
+    private BankAccount GetAccount(
+        FinanceAccountType accountType)
+    {
+        switch (accountType)
+        {
+            case FinanceAccountType.Savings:
+                return savingsAccount;
+
+            case FinanceAccountType.Current:
+                return currentAccount;
+
+            default:
+                return null;
+        }
     }
 
     // =========================================================
@@ -186,31 +308,29 @@ public class BankManager : MonoBehaviour
             return;
         }
 
-        ProcessEMIPayments(
-            currentMonth
-        );
+        ProcessEMIPayments(currentMonth);
     }
 
     // =========================================================
-    // PROCESS ALL EMI PAYMENTS
+    // PROCESS EMI PAYMENTS
     // =========================================================
 
     private void ProcessEMIPayments(
         int currentMonth)
     {
-        if (bankAccount == null)
+        if (savingsAccount == null)
         {
             Debug.LogError(
                 "EMI processing failed: " +
-                "Bank account not initialized."
+                "Savings account is not initialized."
             );
 
             return;
         }
 
-        // =========================
-        // BUILD REQUIRED PAYMENT
-        // =========================
+        // =====================================================
+        // ALL PERSONAL EMI PAYMENTS USE SAVINGS
+        // =====================================================
 
         int overdueCount =
             overdueEmiMonths.Count;
@@ -231,11 +351,11 @@ public class BankManager : MonoBehaviour
             overdueBounceAmount +
             currentEmiAmount;
 
-        // =========================
-        // CHECK FULL PAYMENT
-        // =========================
+        // =====================================================
+        // INSUFFICIENT BALANCE
+        // =====================================================
 
-        if (bankAccount.Balance <
+        if (savingsAccount.Balance <
             totalRequired)
         {
             HandleCurrentEMIFailure(
@@ -245,9 +365,9 @@ public class BankManager : MonoBehaviour
             return;
         }
 
-        // =========================
-        // PAY OVERDUE EMI
-        // =========================
+        // =====================================================
+        // PAY PREVIOUS / OVERDUE EMI
+        // =====================================================
 
         if (overdueCount > 0)
         {
@@ -255,20 +375,27 @@ public class BankManager : MonoBehaviour
                 int overdueMonth
                 in overdueEmiMonths)
             {
+                // ---------------------------------------------
+                // PREVIOUS MONTH EMI
+                // ---------------------------------------------
+
                 if (!DebitAmount(
+                        FinanceAccountType.Savings,
                         monthlyEmiAmount))
                 {
                     return;
                 }
 
-                RecordTransaction(
+                RecordBankTransaction(
+                    FinanceAccountType.Savings,
                     BankTransaction.TransactionType.EmiDebit,
                     monthlyEmiAmount
                 );
 
-                RecordFinanceTransaction(
+                RecordFinanceExpense(
+                    FinanceAccountType.Savings,
                     monthlyEmiAmount,
-                    "EMI Debited"
+                    $"EMI Debited - Month {overdueMonth}"
                 );
 
                 Debug.Log(
@@ -277,22 +404,29 @@ public class BankManager : MonoBehaviour
                     $"Amount: Rs. {monthlyEmiAmount:N0}"
                 );
 
+                // ---------------------------------------------
+                // BOUNCE CHARGE
+                // ---------------------------------------------
+
                 if (bounceCharge > 0)
                 {
                     if (!DebitAmount(
+                            FinanceAccountType.Savings,
                             bounceCharge))
                     {
                         return;
                     }
 
-                    RecordTransaction(
+                    RecordBankTransaction(
+                        FinanceAccountType.Savings,
                         BankTransaction.TransactionType.BounceCharge,
                         bounceCharge
                     );
 
-                    RecordFinanceTransaction(
+                    RecordFinanceExpense(
+                        FinanceAccountType.Savings,
                         bounceCharge,
-                        "Bounce Charge"
+                        $"Bounce Charge - Month {overdueMonth}"
                     );
 
                     Debug.Log(
@@ -306,24 +440,27 @@ public class BankManager : MonoBehaviour
             overdueEmiMonths.Clear();
         }
 
-        // =========================
-        // PAY CURRENT EMI
-        // =========================
+        // =====================================================
+        // PAY CURRENT MONTH EMI
+        // =====================================================
 
         if (!DebitAmount(
+                FinanceAccountType.Savings,
                 currentEmiAmount))
         {
             return;
         }
 
-        RecordTransaction(
+        RecordBankTransaction(
+            FinanceAccountType.Savings,
             BankTransaction.TransactionType.EmiDebit,
             currentEmiAmount
         );
 
-        RecordFinanceTransaction(
+        RecordFinanceExpense(
+            FinanceAccountType.Savings,
             currentEmiAmount,
-            "EMI Debited"
+            $"EMI Debited - Month {currentMonth}"
         );
 
         lastEmiProcessedMonth =
@@ -332,9 +469,8 @@ public class BankManager : MonoBehaviour
         Debug.Log(
             $"Current EMI paid | " +
             $"Month: {currentMonth} | " +
-            $"Day: {GameTimeManager.Instance.CurrentDay} | " +
             $"Amount: Rs. {currentEmiAmount:N0} | " +
-            $"Remaining Bank Balance: Rs. {bankAccount.Balance:N0}"
+            $"Savings Balance: Rs. {SavingsBalance:N0}"
         );
     }
 
@@ -353,15 +489,31 @@ public class BankManager : MonoBehaviour
             );
         }
 
+        // IMPORTANT:
+        // Do NOT create a finance expense here.
+        //
+        // The EMI was not actually debited.
+        // Therefore:
+        //
+        // March:
+        // Required = Rs.3000
+        // Available = Rs.1500
+        //
+        // Result:
+        // No bank debit
+        // No finance expense
+        // Balance remains Rs.1500
+        // EMI becomes overdue
+
         lastEmiProcessedMonth =
             currentMonth;
 
         Debug.LogWarning(
-            $"EMI debit failed | " +
+            $"EMI debit FAILED | " +
             $"Month: {currentMonth} | " +
-            $"Required Current EMI: Rs. {monthlyEmiAmount:N0} | " +
-            $"Available Bank Balance: Rs. {bankAccount.Balance:N0} | " +
-            $"Current EMI marked overdue."
+            $"Required: Rs. {monthlyEmiAmount:N0} | " +
+            $"Available: Rs. {SavingsBalance:N0} | " +
+            $"No expense recorded. EMI marked overdue."
         );
     }
 
@@ -370,6 +522,7 @@ public class BankManager : MonoBehaviour
     // =========================================================
 
     private bool DebitAmount(
+        FinanceAccountType accountType,
         int amount)
     {
         if (amount <= 0)
@@ -377,61 +530,149 @@ public class BankManager : MonoBehaviour
             return false;
         }
 
-        if (bankAccount.Balance <
-            amount)
+        BankAccount account =
+            GetAccount(accountType);
+
+        if (account == null)
         {
-            Debug.LogWarning(
-                $"Bank debit failed | " +
-                $"Required: Rs. {amount:N0} | " +
-                $"Available: Rs. {bankAccount.Balance:N0}"
+            Debug.LogError(
+                $"Debit failed: " +
+                $"{accountType} account not initialized."
             );
 
             return false;
         }
 
-        bankAccount.Balance -=
-            amount;
+        if (account.Balance < amount)
+        {
+            Debug.LogWarning(
+                $"Bank debit failed | " +
+                $"Account: {accountType} | " +
+                $"Required: Rs. {amount:N0} | " +
+                $"Available: Rs. {account.Balance:N0}"
+            );
+
+            return false;
+        }
+
+        account.Balance -= amount;
 
         return true;
     }
 
     // =========================================================
-    // RECORD FINANCE TRANSACTION
+    // CREDIT AMOUNT
     // =========================================================
 
-    private void RecordFinanceTransaction(
+    public bool Credit(
+        FinanceAccountType accountType,
         int amount,
         string description)
     {
-        if (FinanceTransactionManager.Instance == null)
+        if (amount <= 0)
         {
             Debug.LogWarning(
-                "BankManager: " +
-                "FinanceTransactionManager not found. " +
-                $"{description} ledger entry skipped."
+                "Credit failed: Amount must be greater than zero."
             );
 
-            return;
+            return false;
         }
 
-        FinanceTransactionManager.Instance.RecordExpense(
-            FinanceAccountType.Employee,
+        BankAccount account =
+            GetAccount(accountType);
+
+        if (account == null)
+        {
+            Debug.LogError(
+                $"Credit failed: " +
+                $"{accountType} account not initialized."
+            );
+
+            return false;
+        }
+
+        account.Balance += amount;
+
+        RecordBankTransaction(
+            accountType,
+            BankTransaction.TransactionType.Deposit,
+            amount
+        );
+
+        RecordFinanceIncome(
+            accountType,
             amount,
             description
         );
 
         Debug.Log(
-            $"Employee finance transaction recorded | " +
-            $"Description: {description} | " +
-            $"Amount: Rs. {amount:N0}"
+            $"Bank credit successful | " +
+            $"Account: {accountType} | " +
+            $"Amount: Rs. {amount:N0} | " +
+            $"Balance: Rs. {account.Balance:N0}"
+        );
+
+        return true;
+    }
+
+    // =========================================================
+    // DEBIT
+    // =========================================================
+
+    public bool Debit(
+        FinanceAccountType accountType,
+        int amount,
+        string description)
+    {
+        if (!DebitAmount(
+                accountType,
+                amount))
+        {
+            return false;
+        }
+
+        RecordBankTransaction(
+            accountType,
+            BankTransaction.TransactionType.Withdraw,
+            amount
+        );
+
+        RecordFinanceExpense(
+            accountType,
+            amount,
+            description
+        );
+
+        Debug.Log(
+            $"Bank debit successful | " +
+            $"Account: {accountType} | " +
+            $"Amount: Rs. {amount:N0} | " +
+            $"Balance: Rs. {GetBalance(accountType):N0}"
+        );
+
+        return true;
+    }
+
+    // =========================================================
+    // DEPOSIT - COMPATIBILITY
+    // =========================================================
+    // Defaults to Savings.
+
+    public bool Deposit(int amount)
+    {
+        return Deposit(
+            FinanceAccountType.Savings,
+            amount
         );
     }
 
     // =========================================================
-    // DEPOSIT
+    // DEPOSIT TO ACCOUNT
     // =========================================================
 
-    public bool Deposit(int amount)
+    public bool Deposit(
+        FinanceAccountType accountType,
+        int amount)
     {
         if (amount <= 0)
         {
@@ -455,8 +696,21 @@ public class BankManager : MonoBehaviour
                 amount))
         {
             Debug.LogWarning(
-                $"Deposit failed: Insufficient cash. " +
+                $"Deposit failed: Insufficient money. " +
                 $"Required: Rs. {amount:N0}"
+            );
+
+            return false;
+        }
+
+        BankAccount account =
+            GetAccount(accountType);
+
+        if (account == null)
+        {
+            Debug.LogError(
+                $"Deposit failed: " +
+                $"{accountType} account not initialized."
             );
 
             return false;
@@ -466,28 +720,44 @@ public class BankManager : MonoBehaviour
             amount
         );
 
-        bankAccount.Balance +=
-            amount;
+        account.Balance += amount;
 
-        RecordTransaction(
+        RecordBankTransaction(
+            accountType,
             BankTransaction.TransactionType.Deposit,
             amount
         );
 
         Debug.Log(
             $"Deposit successful | " +
+            $"Account: {accountType} | " +
             $"Amount: Rs. {amount:N0} | " +
-            $"Bank Balance: Rs. {bankAccount.Balance:N0}"
+            $"Balance: Rs. {account.Balance:N0}"
         );
 
         return true;
     }
 
     // =========================================================
-    // WITHDRAW
+    // WITHDRAW - COMPATIBILITY
     // =========================================================
+    // Defaults to Savings.
 
     public bool Withdraw(int amount)
+    {
+        return Withdraw(
+            FinanceAccountType.Savings,
+            amount
+        );
+    }
+
+    // =========================================================
+    // WITHDRAW FROM ACCOUNT
+    // =========================================================
+
+    public bool Withdraw(
+        FinanceAccountType accountType,
+        int amount)
     {
         if (amount <= 0)
         {
@@ -498,12 +768,25 @@ public class BankManager : MonoBehaviour
             return false;
         }
 
-        if (bankAccount.Balance <
-            amount)
+        BankAccount account =
+            GetAccount(accountType);
+
+        if (account == null)
+        {
+            Debug.LogError(
+                $"Withdraw failed: " +
+                $"{accountType} account not initialized."
+            );
+
+            return false;
+        }
+
+        if (account.Balance < amount)
         {
             Debug.LogWarning(
-                $"Withdraw failed: Insufficient bank balance. " +
-                $"Available: Rs. {bankAccount.Balance:N0}"
+                $"Withdraw failed | " +
+                $"Account: {accountType} | " +
+                $"Available: Rs. {account.Balance:N0}"
             );
 
             return false;
@@ -518,32 +801,100 @@ public class BankManager : MonoBehaviour
             return false;
         }
 
-        bankAccount.Balance -=
-            amount;
+        account.Balance -= amount;
 
         MoneyManager.Instance.AddMoney(
             amount
         );
 
-        RecordTransaction(
+        RecordBankTransaction(
+            accountType,
             BankTransaction.TransactionType.Withdraw,
             amount
         );
 
         Debug.Log(
             $"Withdraw successful | " +
+            $"Account: {accountType} | " +
             $"Amount: Rs. {amount:N0} | " +
-            $"Bank Balance: Rs. {bankAccount.Balance:N0}"
+            $"Balance: Rs. {account.Balance:N0}"
         );
 
         return true;
     }
 
     // =========================================================
+    // RECORD FINANCE INCOME
+    // =========================================================
+
+    private void RecordFinanceIncome(
+        FinanceAccountType accountType,
+        int amount,
+        string description)
+    {
+        if (FinanceTransactionManager.Instance == null)
+        {
+            Debug.LogWarning(
+                "BankManager: FinanceTransactionManager " +
+                "not found. Income ledger entry skipped."
+            );
+
+            return;
+        }
+
+        FinanceTransactionManager.Instance.RecordIncome(
+            accountType,
+            amount,
+            description
+        );
+
+        Debug.Log(
+            $"Finance income recorded | " +
+            $"Account: {accountType} | " +
+            $"Description: {description} | " +
+            $"Amount: Rs. {amount:N0}"
+        );
+    }
+
+    // =========================================================
+    // RECORD FINANCE EXPENSE
+    // =========================================================
+
+    private void RecordFinanceExpense(
+        FinanceAccountType accountType,
+        int amount,
+        string description)
+    {
+        if (FinanceTransactionManager.Instance == null)
+        {
+            Debug.LogWarning(
+                "BankManager: FinanceTransactionManager " +
+                "not found. Expense ledger entry skipped."
+            );
+
+            return;
+        }
+
+        FinanceTransactionManager.Instance.RecordExpense(
+            accountType,
+            amount,
+            description
+        );
+
+        Debug.Log(
+            $"Finance expense recorded | " +
+            $"Account: {accountType} | " +
+            $"Description: {description} | " +
+            $"Amount: Rs. {amount:N0}"
+        );
+    }
+
+    // =========================================================
     // RECORD BANK TRANSACTION
     // =========================================================
 
-    private void RecordTransaction(
+    private void RecordBankTransaction(
+        FinanceAccountType accountType,
         BankTransaction.TransactionType type,
         int amount)
     {
@@ -551,7 +902,7 @@ public class BankManager : MonoBehaviour
             new BankTransaction(
                 type,
                 amount,
-                bankAccount.Balance
+                GetBalance(accountType)
             );
 
         transactions.Add(
@@ -560,9 +911,10 @@ public class BankManager : MonoBehaviour
 
         Debug.Log(
             $"Bank transaction recorded | " +
+            $"Account: {accountType} | " +
             $"Type: {type} | " +
             $"Amount: Rs. {amount:N0} | " +
-            $"Balance: Rs. {bankAccount.Balance:N0}"
+            $"Balance: Rs. {GetBalance(accountType):N0}"
         );
     }
 
