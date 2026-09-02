@@ -1,5 +1,7 @@
 ﻿public enum FinanceAccountType
 {
     Savings,
-    Current
+    Current,
+    Employee,
+    Shop
 }

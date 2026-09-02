@@ -4,16 +4,37 @@ using UnityEngine;
 
 public class BankUI : MonoBehaviour
 {
+    // =========================================================
+    // UI REFERENCES
+    // =========================================================
+
     [Header("UI References")]
-    [SerializeField] private TMP_Text accountNumberText;
-    [SerializeField] private TMP_Text balanceText;
-    [SerializeField] private TMP_InputField amountInput;
-    [SerializeField] private TMP_Text transactionHistoryText;
+    [SerializeField]
+    private TMP_Text accountNumberText;
+
+    [SerializeField]
+    private TMP_Text balanceText;
+
+    [SerializeField]
+    private TMP_InputField amountInput;
+
+    [SerializeField]
+    private TMP_Text transactionHistoryText;
+
+    // =========================================================
+    // START
+    // =========================================================
 
     private void Start()
     {
         RefreshUI();
     }
+
+    // =========================================================
+    // DEPOSIT
+    // =========================================================
+    // Uses Savings Account by default.
+    // BankManager.Deposit(int) defaults to Savings.
 
     public void Deposit()
     {
@@ -32,14 +53,23 @@ public class BankUI : MonoBehaviour
         }
 
         bool success =
-            BankManager.Instance.Deposit(amount);
+            BankManager.Instance.Deposit(
+                amount
+            );
 
         if (success)
         {
             ClearAmountInput();
+
             RefreshUI();
         }
     }
+
+    // =========================================================
+    // WITHDRAW
+    // =========================================================
+    // Uses Savings Account by default.
+    // BankManager.Withdraw(int) defaults to Savings.
 
     public void Withdraw()
     {
@@ -58,14 +88,21 @@ public class BankUI : MonoBehaviour
         }
 
         bool success =
-            BankManager.Instance.Withdraw(amount);
+            BankManager.Instance.Withdraw(
+                amount
+            );
 
         if (success)
         {
             ClearAmountInput();
+
             RefreshUI();
         }
     }
+
+    // =========================================================
+    // REFRESH UI
+    // =========================================================
 
     public void RefreshUI()
     {
@@ -78,20 +115,38 @@ public class BankUI : MonoBehaviour
             return;
         }
 
+        // =====================================================
+        // SAVINGS ACCOUNT NUMBER
+        // =====================================================
+
         if (accountNumberText != null)
         {
             accountNumberText.text =
-                $"Account: {BankManager.Instance.AccountNumber}";
+                $"Account: " +
+                $"{BankManager.Instance.SavingsAccountNumber}";
         }
+
+        // =====================================================
+        // SAVINGS BALANCE
+        // =====================================================
 
         if (balanceText != null)
         {
             balanceText.text =
-                $"Bank Balance: Rs. {BankManager.Instance.Balance:N0}";
+                $"Bank Balance: Rs. " +
+                $"{BankManager.Instance.SavingsBalance:N0}";
         }
+
+        // =====================================================
+        // TRANSACTION HISTORY
+        // =====================================================
 
         RefreshTransactionHistory();
     }
+
+    // =========================================================
+    // TRANSACTION HISTORY
+    // =========================================================
 
     private void RefreshTransactionHistory()
     {
@@ -120,24 +175,71 @@ public class BankUI : MonoBehaviour
         StringBuilder history =
             new StringBuilder();
 
-        for (int i = transactions.Count - 1;
-             i >= 0;
-             i--)
+        for (
+            int i = transactions.Count - 1;
+            i >= 0;
+            i--)
         {
             BankTransaction transaction =
                 transactions[i];
 
-            string transactionType =
-                transaction.Type ==
-                BankTransaction.TransactionType.Deposit
-                    ? "Deposit"
-                    : "Withdraw";
+            string transactionType;
 
-            string sign =
+            string sign;
+
+            // =================================================
+            // DEPOSIT
+            // =================================================
+
+            if (
                 transaction.Type ==
-                BankTransaction.TransactionType.Deposit
-                    ? "+"
-                    : "-";
+                BankTransaction.TransactionType.Deposit)
+            {
+                transactionType =
+                    "Deposit";
+
+                sign = "+";
+            }
+
+            // =================================================
+            // EMI
+            // =================================================
+
+            else if (
+                transaction.Type ==
+                BankTransaction.TransactionType.EmiDebit)
+            {
+                transactionType =
+                    "EMI";
+
+                sign = "-";
+            }
+
+            // =================================================
+            // BOUNCE CHARGE
+            // =================================================
+
+            else if (
+                transaction.Type ==
+                BankTransaction.TransactionType.BounceCharge)
+            {
+                transactionType =
+                    "Bounce Charge";
+
+                sign = "-";
+            }
+
+            // =================================================
+            // WITHDRAW
+            // =================================================
+
+            else
+            {
+                transactionType =
+                    "Withdraw";
+
+                sign = "-";
+            }
 
             history.AppendLine(
                 $"{transactionType}  " +
@@ -149,7 +251,12 @@ public class BankUI : MonoBehaviour
             history.ToString();
     }
 
-    private bool TryGetAmount(out int amount)
+    // =========================================================
+    // TRY GET AMOUNT
+    // =========================================================
+
+    private bool TryGetAmount(
+        out int amount)
     {
         amount = 0;
 
@@ -162,7 +269,8 @@ public class BankUI : MonoBehaviour
             return false;
         }
 
-        if (string.IsNullOrWhiteSpace(amountInput.text))
+        if (string.IsNullOrWhiteSpace(
+                amountInput.text))
         {
             Debug.LogWarning(
                 "BankUI: Please enter an amount."
@@ -194,11 +302,16 @@ public class BankUI : MonoBehaviour
         return true;
     }
 
+    // =========================================================
+    // CLEAR AMOUNT INPUT
+    // =========================================================
+
     private void ClearAmountInput()
     {
         if (amountInput != null)
         {
-            amountInput.text = string.Empty;
+            amountInput.text =
+                string.Empty;
         }
     }
 }
