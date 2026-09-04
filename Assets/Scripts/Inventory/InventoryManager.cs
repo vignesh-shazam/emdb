@@ -8,6 +8,10 @@ public class InventoryManager : MonoBehaviour
 
     public static event Action OnInventoryChanged;
 
+    // =========================
+    // INVENTORY
+    // =========================
+
     [Header("Inventory")]
     [SerializeField]
     private List<InventoryItem> inventoryItems =
@@ -16,9 +20,14 @@ public class InventoryManager : MonoBehaviour
     public IReadOnlyList<InventoryItem> InventoryItems =>
         inventoryItems;
 
+    // =========================
+    // AWAKE
+    // =========================
+
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (Instance != null &&
+            Instance != this)
         {
             Destroy(gameObject);
             return;
@@ -28,6 +37,10 @@ public class InventoryManager : MonoBehaviour
 
         InitializeInventory();
     }
+
+    // =========================
+    // INITIALIZE
+    // =========================
 
     private void InitializeInventory()
     {
@@ -43,11 +56,12 @@ public class InventoryManager : MonoBehaviour
         );
     }
 
-    // =========================
+    // =========================================================
     // GET ITEM
-    // =========================
+    // =========================================================
 
-    public InventoryItem GetItem(string itemId)
+    public InventoryItem GetItem(
+        string itemId)
     {
         if (string.IsNullOrWhiteSpace(itemId))
         {
@@ -56,6 +70,11 @@ public class InventoryManager : MonoBehaviour
 
         foreach (InventoryItem item in inventoryItems)
         {
+            if (item == null)
+            {
+                continue;
+            }
+
             if (item.ItemId == itemId)
             {
                 return item;
@@ -65,11 +84,12 @@ public class InventoryManager : MonoBehaviour
         return null;
     }
 
-    // =========================
+    // =========================================================
     // HAS ITEM
-    // =========================
+    // =========================================================
 
-    public bool HasItem(string itemId)
+    public bool HasItem(
+        string itemId)
     {
         InventoryItem item =
             GetItem(itemId);
@@ -78,11 +98,12 @@ public class InventoryManager : MonoBehaviour
                item.Quantity > 0;
     }
 
-    // =========================
+    // =========================================================
     // GET QUANTITY
-    // =========================
+    // =========================================================
 
-    public int GetQuantity(string itemId)
+    public int GetQuantity(
+        string itemId)
     {
         InventoryItem item =
             GetItem(itemId);
@@ -95,14 +116,42 @@ public class InventoryManager : MonoBehaviour
         return item.Quantity;
     }
 
-    // =========================
+    // =========================================================
     // ADD ITEM
-    // =========================
+    // =========================================================
 
     public bool AddItem(
         string itemId,
         string itemName,
         int quantity = 1)
+    {
+        return AddItem(
+            itemId,
+            itemName,
+            quantity,
+            1,
+            0,
+            0,
+            10,
+            5,
+            15
+        );
+    }
+
+    // =========================
+    // ADD ITEM WITH STOCK DATA
+    // =========================
+
+    public bool AddItem(
+        string itemId,
+        string itemName,
+        int quantity,
+        int unitsPerBox,
+        int purchasePricePerBox,
+        int sellingPricePerUnit,
+        int rackShelfCapacity = 10,
+        int rackLowStockThreshold = 5,
+        int storeRoomReorderThreshold = 15)
     {
         if (string.IsNullOrWhiteSpace(itemId))
         {
@@ -134,9 +183,14 @@ public class InventoryManager : MonoBehaviour
         InventoryItem existingItem =
             GetItem(itemId);
 
+        // =========================
+        // EXISTING ITEM
+        // =========================
+
         if (existingItem != null)
         {
-            existingItem.Quantity += quantity;
+            existingItem.Quantity +=
+                quantity;
 
             Debug.Log(
                 $"Item added | " +
@@ -150,20 +204,35 @@ public class InventoryManager : MonoBehaviour
             return true;
         }
 
+        // =========================
+        // NEW ITEM
+        // =========================
+
         InventoryItem newItem =
             new InventoryItem(
                 itemId,
                 itemName,
-                quantity
+                unitsPerBox,
+                purchasePricePerBox,
+                sellingPricePerUnit,
+                quantity,
+                rackShelfCapacity,
+                rackLowStockThreshold,
+                storeRoomReorderThreshold
             );
 
-        inventoryItems.Add(newItem);
+        inventoryItems.Add(
+            newItem
+        );
 
         Debug.Log(
             $"Item added | " +
             $"Item: {newItem.ItemName} | " +
             $"Added: {quantity} | " +
-            $"Quantity: {newItem.Quantity}"
+            $"Quantity: {newItem.Quantity} | " +
+            $"Units/Box: {newItem.UnitsPerBox} | " +
+            $"Purchase/Box: Rs. {newItem.PurchasePricePerBox:N0} | " +
+            $"Selling/Unit: Rs. {newItem.SellingPricePerUnit:N0}"
         );
 
         NotifyInventoryChanged();
@@ -171,9 +240,9 @@ public class InventoryManager : MonoBehaviour
         return true;
     }
 
-    // =========================
+    // =========================================================
     // REMOVE ITEM
-    // =========================
+    // =========================================================
 
     public bool RemoveItem(
         string itemId,
@@ -222,7 +291,8 @@ public class InventoryManager : MonoBehaviour
             return false;
         }
 
-        existingItem.Quantity -= quantity;
+        existingItem.Quantity -=
+            quantity;
 
         Debug.Log(
             $"Item removed | " +
@@ -233,7 +303,9 @@ public class InventoryManager : MonoBehaviour
 
         if (existingItem.Quantity <= 0)
         {
-            inventoryItems.Remove(existingItem);
+            inventoryItems.Remove(
+                existingItem
+            );
 
             Debug.Log(
                 $"Inventory item removed completely | " +
@@ -246,9 +318,9 @@ public class InventoryManager : MonoBehaviour
         return true;
     }
 
-    // =========================
+    // =========================================================
     // SET QUANTITY
-    // =========================
+    // =========================================================
 
     public bool SetQuantity(
         string itemId,
@@ -288,7 +360,9 @@ public class InventoryManager : MonoBehaviour
 
         if (quantity == 0)
         {
-            inventoryItems.Remove(existingItem);
+            inventoryItems.Remove(
+                existingItem
+            );
 
             Debug.Log(
                 $"Inventory item removed | " +
@@ -300,7 +374,8 @@ public class InventoryManager : MonoBehaviour
             return true;
         }
 
-        existingItem.Quantity = quantity;
+        existingItem.Quantity =
+            quantity;
 
         Debug.Log(
             $"Quantity updated | " +
@@ -313,9 +388,83 @@ public class InventoryManager : MonoBehaviour
         return true;
     }
 
-    // =========================
+    // =========================================================
+    // STOCK INFORMATION
+    // =========================================================
+
+    public string GetStockDisplay(
+        string itemId)
+    {
+        InventoryItem item =
+            GetItem(itemId);
+
+        if (item == null)
+        {
+            return "0 Nos";
+        }
+
+        return item.GetStockDisplay();
+    }
+
+    public int GetBoxCount(
+        string itemId)
+    {
+        InventoryItem item =
+            GetItem(itemId);
+
+        if (item == null)
+        {
+            return 0;
+        }
+
+        return item.BoxCount;
+    }
+
+    public int GetLooseUnitCount(
+        string itemId)
+    {
+        InventoryItem item =
+            GetItem(itemId);
+
+        if (item == null)
+        {
+            return 0;
+        }
+
+        return item.LooseUnitCount;
+    }
+
+    public int GetPurchasePricePerUnit(
+        string itemId)
+    {
+        InventoryItem item =
+            GetItem(itemId);
+
+        if (item == null)
+        {
+            return 0;
+        }
+
+        return item.PurchasePricePerUnit;
+    }
+
+    public int GetStockValue(
+        string itemId)
+    {
+        InventoryItem item =
+            GetItem(itemId);
+
+        if (item == null)
+        {
+            return 0;
+        }
+
+        return item.StockValue;
+    }
+
+    // =========================================================
     // INVENTORY CHANGE EVENT
-    // =========================
+    // =========================================================
 
     private void NotifyInventoryChanged()
     {

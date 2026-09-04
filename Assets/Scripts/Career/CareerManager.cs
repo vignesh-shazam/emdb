@@ -232,7 +232,7 @@ public class CareerManager : MonoBehaviour
             IncomeManager.Instance.AddIncome(
                 CurrentSalary,
                 "Salary Credited",
-                FinanceAccountType.Employee
+                FinanceAccountType.Savings
             );
 
         if (!salaryCredited)

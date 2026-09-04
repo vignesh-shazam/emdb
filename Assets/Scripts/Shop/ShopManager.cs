@@ -270,7 +270,7 @@ public class ShopManager : MonoBehaviour
             ExpenseManager.Instance.Spend(
                 upgradeCost,
                 ExpenseCategory.Shopping,
-                FinanceAccountType.Shop,
+                FinanceAccountType.Current,
                 "Shop Upgrade"
             );
 
@@ -579,7 +579,7 @@ public class ShopManager : MonoBehaviour
         }
 
         FinanceTransactionManager.Instance.RecordExpense(
-            FinanceAccountType.Shop,
+            FinanceAccountType.Current,
             item.BuyPrice,
             "Shop Purchase"
         );

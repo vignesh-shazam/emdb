@@ -11,13 +11,14 @@ public class IncomeManager : MonoBehaviour
     public IReadOnlyList<IncomeTransaction> Transactions =>
         transactions;
 
-    // =========================
+    // =========================================================
     // AWAKE
-    // =========================
+    // =========================================================
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (Instance != null &&
+            Instance != this)
         {
             Destroy(gameObject);
             return;
@@ -26,9 +27,9 @@ public class IncomeManager : MonoBehaviour
         Instance = this;
     }
 
-    // =========================
+    // =========================================================
     // ADD INCOME - DEFAULT
-    // =========================
+    // =========================================================
 
     public bool AddIncome(
         int amount,
@@ -37,13 +38,13 @@ public class IncomeManager : MonoBehaviour
         return AddIncome(
             amount,
             source,
-            FinanceAccountType.Employee
+            FinanceAccountType.Savings
         );
     }
 
-    // =========================
+    // =========================================================
     // ADD INCOME - ACCOUNT
-    // =========================
+    // =========================================================
 
     public bool AddIncome(
         int amount,
@@ -68,40 +69,45 @@ public class IncomeManager : MonoBehaviour
             return false;
         }
 
-        if (MoneyManager.Instance == null)
+        if (BankManager.Instance == null)
         {
             Debug.LogError(
-                "IncomeManager: MoneyManager not found."
+                "IncomeManager: BankManager not found."
             );
 
             return false;
         }
 
-        // =========================
-        // ADD MONEY
-        // =========================
+        // =====================================================
+        // BANK CREDIT
+        // =====================================================
 
-        MoneyManager.Instance.AddMoney(
-            amount
-        );
+        bool success =
+            BankManager.Instance.Credit(
+                accountType,
+                amount,
+                source
+            );
 
-        // =========================
-        // RECORD EXISTING INCOME
-        // =========================
+        if (!success)
+        {
+            Debug.LogWarning(
+                $"Income rejected | " +
+                $"Account: {accountType} | " +
+                $"Source: {source} | " +
+                $"Amount: Rs. {amount:N0}"
+            );
+
+            return false;
+        }
+
+        // =====================================================
+        // EXISTING INCOME RECORD
+        // =====================================================
 
         RecordTransaction(
             amount,
             source
-        );
-
-        // =========================
-        // RECORD FINANCE LEDGER
-        // =========================
-
-        RecordFinanceTransaction(
-            amount,
-            source,
-            accountType
         );
 
         Debug.Log(
@@ -110,15 +116,15 @@ public class IncomeManager : MonoBehaviour
             $"Source: {source} | " +
             $"Amount: Rs. {amount:N0} | " +
             $"Balance: Rs. " +
-            $"{MoneyManager.Instance.CurrentMoney:N0}"
+            $"{BankManager.Instance.GetBalance(accountType):N0}"
         );
 
         return true;
     }
 
-    // =========================
+    // =========================================================
     // RECORD INCOME
-    // =========================
+    // =========================================================
 
     private void RecordTransaction(
         int amount,
@@ -155,33 +161,6 @@ public class IncomeManager : MonoBehaviour
 
         transactions.Add(
             transaction
-        );
-    }
-
-    // =========================
-    // RECORD FINANCE LEDGER
-    // =========================
-
-    private void RecordFinanceTransaction(
-        int amount,
-        string source,
-        FinanceAccountType accountType)
-    {
-        if (FinanceTransactionManager.Instance == null)
-        {
-            Debug.LogWarning(
-                "IncomeManager: " +
-                "FinanceTransactionManager not found. " +
-                "Finance ledger entry skipped."
-            );
-
-            return;
-        }
-
-        FinanceTransactionManager.Instance.RecordIncome(
-            accountType,
-            amount,
-            source
         );
     }
 }

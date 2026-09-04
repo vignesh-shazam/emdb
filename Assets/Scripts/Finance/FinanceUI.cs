@@ -1,16 +1,17 @@
 ﻿using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class FinanceUI : MonoBehaviour
 {
     public static FinanceUI Instance { get; private set; }
 
     // =========================================================
-    // FINANCE UI
+    // FINANCE PANEL
     // =========================================================
 
-    [Header("Finance UI")]
+    [Header("Finance Panel")]
     [SerializeField]
     private GameObject financePanel;
 
@@ -23,49 +24,51 @@ public class FinanceUI : MonoBehaviour
     private Key toggleKey = Key.Q;
 
     // =========================================================
-    // SAVINGS ACCOUNT
+    // TITLE
     // =========================================================
 
-    [Header("Savings Account")]
+    [Header("Title")]
     [SerializeField]
-    private TextMeshProUGUI savingsBalanceText;
-
-    [SerializeField]
-    private TextMeshProUGUI savingsIncomeText;
-
-    [SerializeField]
-    private TextMeshProUGUI savingsExpenseText;
-
-    [SerializeField]
-    private TextMeshProUGUI savingsNetText;
+    private TextMeshProUGUI titleText;
 
     // =========================================================
-    // CURRENT ACCOUNT
+    // ACCOUNT BUTTONS
     // =========================================================
 
-    [Header("Current Account")]
+    [Header("Account Buttons")]
     [SerializeField]
-    private TextMeshProUGUI currentBalanceText;
+    private Button savingsButton;
 
     [SerializeField]
-    private TextMeshProUGUI currentIncomeText;
-
-    [SerializeField]
-    private TextMeshProUGUI currentExpenseText;
-
-    [SerializeField]
-    private TextMeshProUGUI currentNetText;
+    private Button currentButton;
 
     // =========================================================
-    // SECTIONS
+    // ACCOUNT INFORMATION
     // =========================================================
 
-    [Header("Sections")]
+    [Header("Account Information")]
     [SerializeField]
-    private GameObject savingsSection;
+    private TextMeshProUGUI accountNumberText;
 
     [SerializeField]
-    private GameObject currentSection;
+    private TextMeshProUGUI balanceText;
+
+    [SerializeField]
+    private TextMeshProUGUI incomeText;
+
+    [SerializeField]
+    private TextMeshProUGUI expenseText;
+
+    [SerializeField]
+    private TextMeshProUGUI netText;
+
+    // =========================================================
+    // CLOSE BUTTON
+    // =========================================================
+
+    [Header("Close Button")]
+    [SerializeField]
+    private Button closeButton;
 
     // =========================================================
     // PUBLIC
@@ -89,8 +92,17 @@ public class FinanceUI : MonoBehaviour
         }
 
         Instance = this;
+    }
 
+    // =========================================================
+    // START
+    // =========================================================
+
+    private void Start()
+    {
         InitializeUI();
+
+        RegisterButtonEvents();
     }
 
     // =========================================================
@@ -110,7 +122,7 @@ public class FinanceUI : MonoBehaviour
 
         financePanel.SetActive(false);
 
-        ClearUI();
+        UpdateFinanceUI();
     }
 
     // =========================================================
@@ -128,6 +140,46 @@ public class FinanceUI : MonoBehaviour
         if (IsOpen)
         {
             UpdateFinanceUI();
+        }
+    }
+
+    // =========================================================
+    // REGISTER BUTTON EVENTS
+    // =========================================================
+
+    private void RegisterButtonEvents()
+    {
+        if (savingsButton != null)
+        {
+            savingsButton.onClick.RemoveListener(
+                SelectSavingsAccount
+            );
+
+            savingsButton.onClick.AddListener(
+                SelectSavingsAccount
+            );
+        }
+
+        if (currentButton != null)
+        {
+            currentButton.onClick.RemoveListener(
+                SelectCurrentAccount
+            );
+
+            currentButton.onClick.AddListener(
+                SelectCurrentAccount
+            );
+        }
+
+        if (closeButton != null)
+        {
+            closeButton.onClick.RemoveListener(
+                CloseFinanceUI
+            );
+
+            closeButton.onClick.AddListener(
+                CloseFinanceUI
+            );
         }
     }
 
@@ -164,10 +216,6 @@ public class FinanceUI : MonoBehaviour
     {
         if (financePanel == null)
         {
-            Debug.LogWarning(
-                "FinanceUI: Finance Panel is not assigned."
-            );
-
             return;
         }
 
@@ -199,23 +247,53 @@ public class FinanceUI : MonoBehaviour
     }
 
     // =========================================================
-    // SET VISIBILITY
+    // SELECT SAVINGS
     // =========================================================
 
-    public void SetFinanceUIVisible(
-        bool visible)
+    public void SelectSavingsAccount()
     {
-        if (financePanel == null)
+        if (FinanceAccountManager.Instance == null)
         {
+            Debug.LogWarning(
+                "FinanceUI: FinanceAccountManager not found."
+            );
+
             return;
         }
 
-        financePanel.SetActive(visible);
+        FinanceAccountManager.Instance
+            .SwitchToSavingsAccount();
 
-        if (visible)
+        UpdateFinanceUI();
+
+        Debug.Log(
+            "Finance UI: SAVINGS selected."
+        );
+    }
+
+    // =========================================================
+    // SELECT CURRENT
+    // =========================================================
+
+    public void SelectCurrentAccount()
+    {
+        if (FinanceAccountManager.Instance == null)
         {
-            UpdateFinanceUI();
+            Debug.LogWarning(
+                "FinanceUI: FinanceAccountManager not found."
+            );
+
+            return;
         }
+
+        FinanceAccountManager.Instance
+            .SwitchToCurrentAccount();
+
+        UpdateFinanceUI();
+
+        Debug.Log(
+            "Finance UI: CURRENT selected."
+        );
     }
 
     // =========================================================
@@ -230,36 +308,18 @@ public class FinanceUI : MonoBehaviour
             return;
         }
 
-        UpdateAccountSections();
-
-        UpdateSavingsAccount();
-
-        UpdateCurrentAccount();
-    }
-
-    // =========================================================
-    // ACCOUNT SECTIONS
-    // =========================================================
-
-    private void UpdateAccountSections()
-    {
         FinanceAccountType selectedAccount =
             FinanceAccountManager.Instance.AccountType;
 
-        bool savings =
-            selectedAccount == FinanceAccountType.Savings;
-
-        bool current =
-            selectedAccount == FinanceAccountType.Current;
-
-        if (savingsSection != null)
+        if (selectedAccount ==
+            FinanceAccountType.Savings)
         {
-            savingsSection.SetActive(savings);
+            UpdateSavingsAccount();
         }
-
-        if (currentSection != null)
+        else if (selectedAccount ==
+                 FinanceAccountType.Current)
         {
-            currentSection.SetActive(current);
+            UpdateCurrentAccount();
         }
     }
 
@@ -269,45 +329,50 @@ public class FinanceUI : MonoBehaviour
 
     private void UpdateSavingsAccount()
     {
-        FinanceAccountType account =
-            FinanceAccountType.Savings;
-
         int balance =
             FinanceAccountManager.Instance
                 .SavingsBalance;
 
         int income =
-            GetTotalIncome(account);
+            GetTotalIncome(
+                FinanceAccountType.Savings
+            );
 
         int expense =
-            GetTotalExpense(account);
+            GetTotalExpense(
+                FinanceAccountType.Savings
+            );
 
         int net =
-            income - expense;
+            income -
+            expense;
 
-        if (savingsBalanceText != null)
+        if (titleText != null)
         {
-            savingsBalanceText.text =
-                $"Balance: Rs. {balance:N0}";
+            titleText.text =
+                "SAVINGS ACCOUNT";
         }
 
-        if (savingsIncomeText != null)
+        if (accountNumberText != null)
         {
-            savingsIncomeText.text =
-                $"Income: Rs. {income:N0}";
+            if (BankManager.Instance != null)
+            {
+                accountNumberText.text =
+                    $"Account: {BankManager.Instance.SavingsAccountNumber}";
+            }
+            else
+            {
+                accountNumberText.text =
+                    "Account: SV-1001";
+            }
         }
 
-        if (savingsExpenseText != null)
-        {
-            savingsExpenseText.text =
-                $"Expense: Rs. {expense:N0}";
-        }
-
-        if (savingsNetText != null)
-        {
-            savingsNetText.text =
-                $"Net: Rs. {net:N0}";
-        }
+        UpdateValues(
+            balance,
+            income,
+            expense,
+            net
+        );
     }
 
     // =========================================================
@@ -316,43 +381,83 @@ public class FinanceUI : MonoBehaviour
 
     private void UpdateCurrentAccount()
     {
-        FinanceAccountType account =
-            FinanceAccountType.Current;
-
         int balance =
             FinanceAccountManager.Instance
                 .CurrentBalance;
 
         int income =
-            GetTotalIncome(account);
+            GetTotalIncome(
+                FinanceAccountType.Current
+            );
 
         int expense =
-            GetTotalExpense(account);
+            GetTotalExpense(
+                FinanceAccountType.Current
+            );
 
         int net =
-            income - expense;
+            income -
+            expense;
 
-        if (currentBalanceText != null)
+        if (titleText != null)
         {
-            currentBalanceText.text =
+            titleText.text =
+                "CURRENT ACCOUNT";
+        }
+
+        if (accountNumberText != null)
+        {
+            if (BankManager.Instance != null)
+            {
+                accountNumberText.text =
+                    $"Account: {BankManager.Instance.CurrentAccountNumber}";
+            }
+            else
+            {
+                accountNumberText.text =
+                    "Account: CA-1001";
+            }
+        }
+
+        UpdateValues(
+            balance,
+            income,
+            expense,
+            net
+        );
+    }
+
+    // =========================================================
+    // UPDATE COMMON VALUES
+    // =========================================================
+
+    private void UpdateValues(
+        int balance,
+        int income,
+        int expense,
+        int net)
+    {
+        if (balanceText != null)
+        {
+            balanceText.text =
                 $"Balance: Rs. {balance:N0}";
         }
 
-        if (currentIncomeText != null)
+        if (incomeText != null)
         {
-            currentIncomeText.text =
+            incomeText.text =
                 $"Income: Rs. {income:N0}";
         }
 
-        if (currentExpenseText != null)
+        if (expenseText != null)
         {
-            currentExpenseText.text =
+            expenseText.text =
                 $"Expense: Rs. {expense:N0}";
         }
 
-        if (currentNetText != null)
+        if (netText != null)
         {
-            currentNetText.text =
+            netText.text =
                 $"Net: Rs. {net:N0}";
         }
     }
@@ -395,51 +500,39 @@ public class FinanceUI : MonoBehaviour
 
     private void ClearUI()
     {
-        if (savingsBalanceText != null)
+        if (titleText != null)
         {
-            savingsBalanceText.text =
+            titleText.text =
+                "FINANCE";
+        }
+
+        if (accountNumberText != null)
+        {
+            accountNumberText.text =
+                "Account: -";
+        }
+
+        if (balanceText != null)
+        {
+            balanceText.text =
                 "Balance: Rs. 0";
         }
 
-        if (savingsIncomeText != null)
+        if (incomeText != null)
         {
-            savingsIncomeText.text =
+            incomeText.text =
                 "Income: Rs. 0";
         }
 
-        if (savingsExpenseText != null)
+        if (expenseText != null)
         {
-            savingsExpenseText.text =
+            expenseText.text =
                 "Expense: Rs. 0";
         }
 
-        if (savingsNetText != null)
+        if (netText != null)
         {
-            savingsNetText.text =
-                "Net: Rs. 0";
-        }
-
-        if (currentBalanceText != null)
-        {
-            currentBalanceText.text =
-                "Balance: Rs. 0";
-        }
-
-        if (currentIncomeText != null)
-        {
-            currentIncomeText.text =
-                "Income: Rs. 0";
-        }
-
-        if (currentExpenseText != null)
-        {
-            currentExpenseText.text =
-                "Expense: Rs. 0";
-        }
-
-        if (currentNetText != null)
-        {
-            currentNetText.text =
+            netText.text =
                 "Net: Rs. 0";
         }
     }

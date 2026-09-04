@@ -11,13 +11,14 @@ public class ExpenseManager : MonoBehaviour
     public IReadOnlyList<ExpenseTransaction> Transactions =>
         transactions;
 
-    // =========================
+    // =========================================================
     // AWAKE
-    // =========================
+    // =========================================================
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (Instance != null &&
+            Instance != this)
         {
             Destroy(gameObject);
             return;
@@ -26,45 +27,62 @@ public class ExpenseManager : MonoBehaviour
         Instance = this;
     }
 
-    // =========================
+    // =========================================================
     // CAN AFFORD
-    // =========================
+    // =========================================================
 
     public bool CanAfford(int amount)
+    {
+        return CanAfford(
+            amount,
+            FinanceAccountType.Savings
+        );
+    }
+
+    // =========================================================
+    // CAN AFFORD - ACCOUNT
+    // =========================================================
+
+    public bool CanAfford(
+        int amount,
+        FinanceAccountType accountType)
     {
         if (amount <= 0)
         {
             return false;
         }
 
-        if (MoneyManager.Instance == null)
+        if (BankManager.Instance == null)
         {
             Debug.LogError(
-                "ExpenseManager: MoneyManager not found."
+                "ExpenseManager: BankManager not found."
             );
 
             return false;
         }
 
-        return MoneyManager.Instance.CanAfford(amount);
+        return
+            BankManager.Instance.GetBalance(
+                accountType
+            ) >= amount;
     }
 
-    // =========================
+    // =========================================================
     // SPEND
-    // =========================
+    // =========================================================
 
     public bool Spend(int amount)
     {
         return Spend(
             amount,
             ExpenseCategory.Other,
-            FinanceAccountType.Employee
+            FinanceAccountType.Savings
         );
     }
 
-    // =========================
+    // =========================================================
     // SPEND - CATEGORY
-    // =========================
+    // =========================================================
 
     public bool Spend(
         int amount,
@@ -73,13 +91,13 @@ public class ExpenseManager : MonoBehaviour
         return Spend(
             amount,
             category,
-            FinanceAccountType.Employee
+            FinanceAccountType.Savings
         );
     }
 
-    // =========================
+    // =========================================================
     // SPEND - ACCOUNT
-    // =========================
+    // =========================================================
 
     public bool Spend(
         int amount,
@@ -94,9 +112,9 @@ public class ExpenseManager : MonoBehaviour
         );
     }
 
-    // =========================
+    // =========================================================
     // SPEND - CUSTOM DESCRIPTION
-    // =========================
+    // =========================================================
 
     public bool Spend(
         int amount,
@@ -113,50 +131,55 @@ public class ExpenseManager : MonoBehaviour
             return false;
         }
 
-        if (MoneyManager.Instance == null)
+        if (BankManager.Instance == null)
         {
             Debug.LogError(
-                "ExpenseManager: MoneyManager not found."
+                "ExpenseManager: BankManager not found."
             );
 
             return false;
         }
 
-        if (!MoneyManager.Instance.CanAfford(amount))
+        int currentBalance =
+            BankManager.Instance.GetBalance(
+                accountType
+            );
+
+        if (currentBalance < amount)
         {
             Debug.Log(
                 $"Expense rejected: {description}. " +
-                $"Insufficient funds for Rs. {amount:N0}."
+                $"Account: {accountType} | " +
+                $"Required: Rs. {amount:N0} | " +
+                $"Available: Rs. {currentBalance:N0}"
             );
 
             return false;
         }
 
+        // =====================================================
+        // BANK DEBIT
+        // =====================================================
+
         bool success =
-            MoneyManager.Instance.RemoveMoney(amount);
+            BankManager.Instance.Debit(
+                accountType,
+                amount,
+                description
+            );
 
         if (!success)
         {
             return false;
         }
 
-        // =========================
+        // =====================================================
         // EXISTING EXPENSE RECORD
-        // =========================
+        // =====================================================
 
         RecordTransaction(
             amount,
             category
-        );
-
-        // =========================
-        // FINANCE LEDGER RECORD
-        // =========================
-
-        RecordFinanceTransaction(
-            amount,
-            accountType,
-            description
         );
 
         Debug.Log(
@@ -166,15 +189,15 @@ public class ExpenseManager : MonoBehaviour
             $"Category: {category} | " +
             $"Amount: Rs. {amount:N0} | " +
             $"Remaining: Rs. " +
-            $"{MoneyManager.Instance.CurrentMoney:N0}"
+            $"{BankManager.Instance.GetBalance(accountType):N0}"
         );
 
         return true;
     }
 
-    // =========================
+    // =========================================================
     // RECORD EXISTING EXPENSE
-    // =========================
+    // =========================================================
 
     private void RecordTransaction(
         int amount,
@@ -209,38 +232,8 @@ public class ExpenseManager : MonoBehaviour
                 GameTimeManager.Instance.CurrentMinute
             );
 
-        transactions.Add(transaction);
-    }
-
-    // =========================
-    // RECORD FINANCE LEDGER
-    // =========================
-
-    private void RecordFinanceTransaction(
-        int amount,
-        FinanceAccountType accountType,
-        string description)
-    {
-        if (FinanceTransactionManager.Instance == null)
-        {
-            Debug.LogWarning(
-                "ExpenseManager: " +
-                "FinanceTransactionManager not found. " +
-                "Finance ledger entry skipped."
-            );
-
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(description))
-        {
-            description = "Expense";
-        }
-
-        FinanceTransactionManager.Instance.RecordExpense(
-            accountType,
-            amount,
-            description
+        transactions.Add(
+            transaction
         );
     }
 }

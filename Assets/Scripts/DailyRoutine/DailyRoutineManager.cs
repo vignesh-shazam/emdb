@@ -368,7 +368,7 @@ public class DailyRoutineManager : MonoBehaviour
             ExpenseManager.Instance.Spend(
                 amount,
                 category,
-                FinanceAccountType.Employee,
+                FinanceAccountType.Savings,
                 description
             );
 

@@ -66,12 +66,12 @@ public class CustomerPatienceManager : MonoBehaviour
         {
             debugTimer = 0f;
 
-            Debug.Log(
-                $"Customer patience updated | " +
-                $"Customer: {customer.CustomerName} | " +
-                $"ID: {customer.CustomerId} | " +
-                $"Patience: {customer.Patience:0.00}"
-            );
+            //Debug.Log(
+            //    $"Customer patience updated | " +
+            //    $"Customer: {customer.CustomerName} | " +
+            //    $"ID: {customer.CustomerId} | " +
+            //    $"Patience: {customer.Patience:0.00}"
+            //);
         }
 
         // =========================

@@ -529,7 +529,7 @@ public class CustomerManager : MonoBehaviour
         }
 
         FinanceTransactionManager.Instance.RecordIncome(
-            FinanceAccountType.Shop,
+            FinanceAccountType.Current,
             payment,
             "Shop Sale"
         );

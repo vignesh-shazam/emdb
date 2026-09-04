@@ -17,7 +17,7 @@ public class BankManager : MonoBehaviour
     private string savingsAccountName = "Vignesh";
 
     [SerializeField]
-    private int savingsStartingBalance = 0;
+    private int savingsStartingBalance = 10000;
 
     // =========================================================
     // CURRENT ACCOUNT
@@ -31,7 +31,7 @@ public class BankManager : MonoBehaviour
     private string currentAccountName = "Shop";
 
     [SerializeField]
-    private int currentStartingBalance = 0;
+    private int currentStartingBalance = 5000;
 
     // =========================================================
     // MONTHLY EMI
@@ -61,7 +61,6 @@ public class BankManager : MonoBehaviour
     // =========================================================
 
     private BankAccount savingsAccount;
-
     private BankAccount currentAccount;
 
     // =========================================================
@@ -120,7 +119,7 @@ public class BankManager : MonoBehaviour
             : 0;
 
     // =========================================================
-    // SELECTED ACCOUNT BALANCE
+    // GET BALANCE
     // =========================================================
 
     public int GetBalance(
@@ -328,10 +327,6 @@ public class BankManager : MonoBehaviour
             return;
         }
 
-        // =====================================================
-        // ALL PERSONAL EMI PAYMENTS USE SAVINGS
-        // =====================================================
-
         int overdueCount =
             overdueEmiMonths.Count;
 
@@ -366,7 +361,7 @@ public class BankManager : MonoBehaviour
         }
 
         // =====================================================
-        // PAY PREVIOUS / OVERDUE EMI
+        // PAY OVERDUE EMI
         // =====================================================
 
         if (overdueCount > 0)
@@ -375,10 +370,6 @@ public class BankManager : MonoBehaviour
                 int overdueMonth
                 in overdueEmiMonths)
             {
-                // ---------------------------------------------
-                // PREVIOUS MONTH EMI
-                // ---------------------------------------------
-
                 if (!DebitAmount(
                         FinanceAccountType.Savings,
                         monthlyEmiAmount))
@@ -403,10 +394,6 @@ public class BankManager : MonoBehaviour
                     $"Original Month: {overdueMonth} | " +
                     $"Amount: Rs. {monthlyEmiAmount:N0}"
                 );
-
-                // ---------------------------------------------
-                // BOUNCE CHARGE
-                // ---------------------------------------------
 
                 if (bounceCharge > 0)
                 {
@@ -488,22 +475,6 @@ public class BankManager : MonoBehaviour
                 currentMonth
             );
         }
-
-        // IMPORTANT:
-        // Do NOT create a finance expense here.
-        //
-        // The EMI was not actually debited.
-        // Therefore:
-        //
-        // March:
-        // Required = Rs.3000
-        // Available = Rs.1500
-        //
-        // Result:
-        // No bank debit
-        // No finance expense
-        // Balance remains Rs.1500
-        // EMI becomes overdue
 
         lastEmiProcessedMonth =
             currentMonth;
@@ -654,9 +625,8 @@ public class BankManager : MonoBehaviour
     }
 
     // =========================================================
-    // DEPOSIT - COMPATIBILITY
+    // DEPOSIT - LEGACY BANK PANEL SUPPORT
     // =========================================================
-    // Defaults to Savings.
 
     public bool Deposit(int amount)
     {
@@ -739,9 +709,8 @@ public class BankManager : MonoBehaviour
     }
 
     // =========================================================
-    // WITHDRAW - COMPATIBILITY
+    // WITHDRAW - LEGACY BANK PANEL SUPPORT
     // =========================================================
-    // Defaults to Savings.
 
     public bool Withdraw(int amount)
     {

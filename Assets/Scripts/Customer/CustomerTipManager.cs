@@ -224,7 +224,7 @@ public class CustomerTipManager : MonoBehaviour
         }
 
         FinanceTransactionManager.Instance.RecordIncome(
-            FinanceAccountType.Shop,
+            FinanceAccountType.Current,
             amount,
             "Tip Claimed"
         );
