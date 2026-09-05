@@ -284,9 +284,24 @@ public class StockerManager : MonoBehaviour
     [ContextMenu("TEST - Restock Milk")]
     private void TestRestockMilk()
     {
-        RestockItem(
-            "food_002"
-        );
+        // food_001 = Milk
+        bool success =
+            RestockItem(
+                "food_001"
+            );
+
+        if (success)
+        {
+            Debug.Log(
+                "Stocker Test: Milk restock successful."
+            );
+        }
+        else
+        {
+            Debug.LogWarning(
+                "Stocker Test: Milk restock failed."
+            );
+        }
     }
 
     [ContextMenu("TEST - Restock All Low Stock")]

@@ -25,7 +25,8 @@ public class CustomerManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (Instance != null &&
+            Instance != this)
         {
             Destroy(gameObject);
             return;
@@ -61,19 +62,23 @@ public class CustomerManager : MonoBehaviour
     public Customer GetCustomer(
         string customerId)
     {
-        if (string.IsNullOrWhiteSpace(customerId))
+        if (string.IsNullOrWhiteSpace(
+                customerId))
         {
             return null;
         }
 
-        foreach (Customer customer in activeCustomers)
+        foreach (
+            Customer customer
+            in activeCustomers)
         {
             if (customer == null)
             {
                 continue;
             }
 
-            if (customer.CustomerId == customerId)
+            if (customer.CustomerId ==
+                customerId)
             {
                 return customer;
             }
@@ -290,6 +295,153 @@ public class CustomerManager : MonoBehaviour
         );
 
         return customer;
+    }
+
+    // =========================================================
+    // COLLECT CUSTOMER ITEMS FROM RACK
+    // =========================================================
+
+    public bool CollectCustomerItems(
+        string customerId)
+    {
+        Customer customer =
+            GetCustomer(customerId);
+
+        if (customer == null)
+        {
+            Debug.LogWarning(
+                $"Collection failed: Customer not found. " +
+                $"ID: {customerId}"
+            );
+
+            return false;
+        }
+
+        // =========================
+        // VALIDATE REQUEST
+        // =========================
+
+        if (!customer.HasValidRequest())
+        {
+            Debug.LogWarning(
+                $"Collection failed: Invalid customer request. " +
+                $"Customer: {customer.CustomerName}"
+            );
+
+            return false;
+        }
+
+        // =========================
+        // RACK MANAGER
+        // =========================
+
+        if (RackManager.Instance == null)
+        {
+            Debug.LogError(
+                "Collection failed: RackManager not found."
+            );
+
+            return false;
+        }
+
+        // =========================
+        // CHECK REMAINING QUANTITY
+        // =========================
+
+        int remainingQuantity =
+            customer.RemainingQuantity;
+
+        if (remainingQuantity <= 0)
+        {
+            Debug.LogWarning(
+                $"Collection failed: " +
+                $"Customer already collected all requested items. " +
+                $"Customer: {customer.CustomerName}"
+            );
+
+            return false;
+        }
+
+        // =========================
+        // CHECK RACK STOCK
+        // =========================
+
+        int rackQuantity =
+            RackManager.Instance.GetQuantity(
+                customer.RequestedItemId
+            );
+
+        if (rackQuantity <
+            remainingQuantity)
+        {
+            Debug.LogWarning(
+                $"Collection failed: Not enough rack stock. " +
+                $"Item: {customer.RequestedItemName} | " +
+                $"Required: {remainingQuantity} | " +
+                $"Rack Available: {rackQuantity}"
+            );
+
+            return false;
+        }
+
+        // =========================
+        // REMOVE FROM RACK
+        // =========================
+
+        bool removed =
+            RackManager.Instance.RemoveStock(
+                customer.RequestedItemId,
+                remainingQuantity
+            );
+
+        if (!removed)
+        {
+            Debug.LogWarning(
+                $"Collection failed: Could not remove items " +
+                $"from rack. " +
+                $"Item: {customer.RequestedItemName}"
+            );
+
+            return false;
+        }
+
+        // =========================
+        // UPDATE CUSTOMER
+        // =========================
+
+        bool collected =
+            customer.CollectItems(
+                remainingQuantity
+            );
+
+        if (!collected)
+        {
+            Debug.LogError(
+                $"Collection ERROR: Rack stock was removed " +
+                $"but customer collection failed. " +
+                $"Customer: {customer.CustomerName}"
+            );
+
+            return false;
+        }
+
+        // =========================
+        // SUCCESS
+        // =========================
+
+        Debug.Log(
+    $"CUSTOMER ITEMS COLLECTED | " +
+    $"Customer: {customer.CustomerName} | " +
+    $"Item: {customer.RequestedItemName} | " +
+    $"Quantity: {remainingQuantity} | " +
+    $"Collected: {customer.CollectedQuantity} | " +
+    $"Remaining: {customer.RemainingQuantity} | " +
+    $"Rack Remaining: {RackManager.Instance.GetQuantity(customer.RequestedItemId)}"
+);
+
+        OnCustomerListChanged?.Invoke();
+
+        return true;
     }
 
     // =========================
@@ -539,5 +691,82 @@ public class CustomerManager : MonoBehaviour
             $"Customer: {customer.CustomerName} | " +
             $"Amount: Rs. {payment:N0}"
         );
+    }
+
+    // =========================================================
+    // DEVELOPMENT TESTS
+    // =========================================================
+
+    [ContextMenu("TEST - Create Milk Customer")]
+    private void TestCreateMilkCustomer()
+    {
+        CreateCustomer(
+            "CUS-TEST-001",
+            "Test Customer",
+            "food_001",
+            "Milk",
+            3,
+            100f
+        );
+    }
+
+    [ContextMenu("TEST - Collect Current Customer Items")]
+    private void TestCollectCurrentCustomerItems()
+    {
+        if (activeCustomers == null ||
+            activeCustomers.Count == 0)
+        {
+            Debug.LogWarning(
+                "Customer Test: No active customer."
+            );
+
+            return;
+        }
+
+        Customer customer =
+            activeCustomers[0];
+
+        CollectCustomerItems(
+            customer.CustomerId
+        );
+    }
+
+    [ContextMenu("TEST - Show Customer")]
+    private void TestShowCustomer()
+    {
+        if (activeCustomers == null ||
+            activeCustomers.Count == 0)
+        {
+            Debug.Log(
+                "Customer Test: No active customers."
+            );
+
+            return;
+        }
+
+        foreach (
+            Customer customer
+            in activeCustomers)
+        {
+            if (customer == null)
+            {
+                continue;
+            }
+
+            Debug.Log(
+                $"Customer | " +
+                $"Name: {customer.CustomerName} | " +
+                $"Request: {customer.RequestedItemName} x" +
+                $"{customer.RequestedQuantity} | " +
+                $"Collected: {customer.CollectedQuantity} | " +
+                $"Remaining: {customer.RemainingQuantity}"
+            );
+        }
+    }
+
+    [ContextMenu("TEST - Clear Customers")]
+    private void TestClearCustomers()
+    {
+        ClearCustomers();
     }
 }

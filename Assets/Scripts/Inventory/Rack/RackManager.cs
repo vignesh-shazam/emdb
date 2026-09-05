@@ -156,10 +156,6 @@ public class RackManager : MonoBehaviour
                 continue;
             }
 
-            // IMPORTANT:
-            // Shelf numbers are always
-            // based on their list position.
-
             shelves[i].ShelfNumber =
                 i + 1;
 
@@ -178,8 +174,6 @@ public class RackManager : MonoBehaviour
                     shelfCapacity;
             }
 
-            // If quantity is zero,
-            // make sure the shelf is empty.
             if (shelves[i].Quantity == 0)
             {
                 shelves[i].ItemId =
@@ -625,6 +619,17 @@ public class RackManager : MonoBehaviour
             }
         }
 
+        if (remaining > 0)
+        {
+            Debug.LogError(
+                $"Rack: Removal failed unexpectedly | " +
+                $"Item: {itemId} | " +
+                $"Remaining: {remaining}"
+            );
+
+            return false;
+        }
+
         Debug.Log(
             $"Rack sale/removal completed | " +
             $"Item: {itemId} | " +
@@ -857,8 +862,9 @@ public class RackManager : MonoBehaviour
     {
         EnsureShelfConfiguration();
 
+        // food_001 = Milk
         AddStock(
-            "food_002",
+            "food_001",
             "Milk",
             10
         );
@@ -869,8 +875,9 @@ public class RackManager : MonoBehaviour
     {
         EnsureShelfConfiguration();
 
+        // food_002 = Bread
         AddStock(
-            "food_001",
+            "food_002",
             "Bread",
             10
         );
@@ -881,6 +888,7 @@ public class RackManager : MonoBehaviour
     {
         EnsureShelfConfiguration();
 
+        // tool_001 = Tool Kit
         AddStock(
             "tool_001",
             "Tool Kit",
@@ -893,8 +901,9 @@ public class RackManager : MonoBehaviour
     {
         EnsureShelfConfiguration();
 
+        // food_001 = Milk
         RemoveStock(
-            "food_002",
+            "food_001",
             6
         );
     }
@@ -913,5 +922,49 @@ public class RackManager : MonoBehaviour
         EnsureShelfConfiguration();
 
         LogAllShelves();
+    }
+
+    [ContextMenu("TEST 8 - Remove 5 Milk")]
+    private void TestRemove5Milk()
+    {
+        EnsureShelfConfiguration();
+
+        // food_001 = Milk
+        bool removed =
+            RemoveStock(
+                "food_001",
+                5
+            );
+
+        if (removed)
+        {
+            Debug.Log(
+                "Rack Test: Successfully removed 5 Milk."
+            );
+        }
+        else
+        {
+            Debug.LogWarning(
+                "Rack Test: Failed to remove 5 Milk."
+            );
+        }
+    }
+
+    [ContextMenu("TEST 9 - Remove 4 Milk")]
+    private void TestRemove4Milk()
+    {
+        RemoveStock("food_001", 4);
+    }
+
+    [ContextMenu("TEST 10 - Remove 6 Bread")]
+    private void TestRemove6Bread()
+    {
+        RemoveStock("food_002", 6);
+    }
+
+    [ContextMenu("TEST 11 - Remove 6 ToolKit")]
+    private void TestRemove6Toolkit()
+    {
+        RemoveStock("tool_001", 6);
     }
 }

@@ -6,6 +6,13 @@ public class DeliveryManager : MonoBehaviour
     public static DeliveryManager Instance { get; private set; }
 
     // --------------------------------------------------
+    // DELIVERY TIMES
+    // --------------------------------------------------
+
+    private const float SingleItemDeliveryTime = 30f;
+    private const float MultipleItemDeliveryTime = 45f;
+
+    // --------------------------------------------------
     // DELIVERY STATE
     // --------------------------------------------------
 
@@ -122,8 +129,7 @@ public class DeliveryManager : MonoBehaviour
 
         Debug.Log(
             $"Delivery started. " +
-            $"Delivery time: " +
-            $"{TotalDeliveryTime:0} seconds."
+            $"Delivery time: {TotalDeliveryTime:0} seconds."
         );
 
         OnDeliveryStarted?.Invoke();
@@ -145,6 +151,10 @@ public class DeliveryManager : MonoBehaviour
 
         if (!deliverySuccessful)
         {
+            deliveryInProgress = false;
+            remainingTime = 0f;
+            TotalDeliveryTime = 0f;
+
             Debug.LogError(
                 "Delivery failed. " +
                 "The purchase order could not be delivered " +
@@ -165,7 +175,7 @@ public class DeliveryManager : MonoBehaviour
     }
 
     // --------------------------------------------------
-    // DELIVERY → STORE ROOM
+    // DELIVER ORDER TO STORE ROOM
     // --------------------------------------------------
 
     private bool DeliverOrderToStoreRoom()
@@ -197,43 +207,89 @@ public class DeliveryManager : MonoBehaviour
             return false;
         }
 
-        int itemCount =
-            PurchaseOrderManager.Instance.DifferentItemCount;
+        Debug.Log(
+            "========== DELIVERY → STORE ROOM =========="
+        );
 
-        for (int i = 0; i < itemCount; i++)
-        {
-            PurchaseOrderItem orderItem =
-                PurchaseOrderManager.Instance.GetOrderItemAt(i);
+        // --------------------------------------------------
+        // MILK
+        // food_001 → Milk
+        // --------------------------------------------------
 
-            if (orderItem == null)
-                continue;
+        DeliverItemToStoreRoom(
+            "food_001",
+            "Milk"
+        );
 
-            int totalUnits =
-                orderItem.TotalUnits;
+        // --------------------------------------------------
+        // BREAD
+        // food_002 → Bread
+        // --------------------------------------------------
 
-            if (totalUnits <= 0)
-                continue;
+        DeliverItemToStoreRoom(
+            "food_002",
+            "Bread"
+        );
 
-            StoreRoomManager.Instance.AddStock(
-                orderItem.ItemId,
-                orderItem.ItemName,
-                orderItem.UnitsPerBox,
-                totalUnits
-            );
+        // --------------------------------------------------
+        // TOOL KIT
+        // tool_001 → Tool Kit
+        // --------------------------------------------------
 
-            Debug.Log(
-                $"Delivery → Store Room | " +
-                $"{orderItem.ItemName} | " +
-                $"{orderItem.BoxQuantity} Box(es) | " +
-                $"{totalUnits} Nos"
-            );
-        }
+        DeliverItemToStoreRoom(
+            "tool_001",
+            "Tool Kit"
+        );
 
-        // Clear order only after delivery
-        // has been processed.
+        Debug.Log(
+            "==========================================="
+        );
+
+        // Clear order only after delivery processing.
         PurchaseOrderManager.Instance.ClearOrder();
 
         return true;
+    }
+
+    // --------------------------------------------------
+    // DELIVER ONE ITEM
+    // --------------------------------------------------
+
+    private void DeliverItemToStoreRoom(
+        string itemId,
+        string itemName)
+    {
+        PurchaseOrderItem orderItem =
+            PurchaseOrderManager.Instance.GetOrderItem(
+                itemId
+            );
+
+        if (orderItem == null)
+        {
+            return;
+        }
+
+        int totalUnits =
+            orderItem.TotalUnits;
+
+        if (totalUnits <= 0)
+        {
+            return;
+        }
+
+        StoreRoomManager.Instance.AddStock(
+            orderItem.ItemId,
+            orderItem.ItemName,
+            orderItem.UnitsPerBox,
+            totalUnits
+        );
+
+        Debug.Log(
+            $"Delivery → Store Room | " +
+            $"{orderItem.ItemName} | " +
+            $"{orderItem.BoxQuantity} Box(es) | " +
+            $"{totalUnits} Nos"
+        );
     }
 
     // --------------------------------------------------
@@ -271,8 +327,7 @@ public class DeliveryManager : MonoBehaviour
         if (!deliveryInProgress)
             return "No Delivery";
 
-        return
-            $"{Mathf.CeilToInt(remainingTime)} sec";
+        return $"{Mathf.CeilToInt(remainingTime)} sec";
     }
 
     public float GetProgress()
@@ -303,7 +358,7 @@ public class DeliveryManager : MonoBehaviour
 
     // --------------------------------------------------
     // TEST 1
-    // SINGLE ITEM
+    // SINGLE ITEM DELIVERY
     // --------------------------------------------------
 
     [ContextMenu("TEST 1 - Start Single Item Delivery")]
@@ -321,16 +376,16 @@ public class DeliveryManager : MonoBehaviour
 
         PurchaseOrderManager.Instance.ClearOrder();
 
+        // food_001 → Milk
         PurchaseOrderManager.Instance.AddItem(
-            "food_002",
+            "food_001",
             "Milk",
             2,
             10
         );
 
         Debug.Log(
-            "Delivery Test: " +
-            "Milk × 2 Boxes added."
+            "Delivery Test: Milk × 2 Boxes added."
         );
 
         StartDelivery();
@@ -338,7 +393,7 @@ public class DeliveryManager : MonoBehaviour
 
     // --------------------------------------------------
     // TEST 2
-    // MULTIPLE ITEMS
+    // MULTIPLE ITEM DELIVERY
     // --------------------------------------------------
 
     [ContextMenu("TEST 2 - Start Multiple Item Delivery")]
@@ -356,15 +411,17 @@ public class DeliveryManager : MonoBehaviour
 
         PurchaseOrderManager.Instance.ClearOrder();
 
+        // food_001 → Milk
         PurchaseOrderManager.Instance.AddItem(
-            "food_002",
+            "food_001",
             "Milk",
             2,
             10
         );
 
+        // food_002 → Bread
         PurchaseOrderManager.Instance.AddItem(
-            "food_001",
+            "food_002",
             "Bread",
             2,
             10
@@ -387,18 +444,15 @@ public class DeliveryManager : MonoBehaviour
     private void TestShowDeliveryStatus()
     {
         Debug.Log(
-            $"Delivery Status: " +
-            $"{GetStatusDisplay()}"
+            $"Delivery Status: {GetStatusDisplay()}"
         );
 
         Debug.Log(
-            $"In Progress: " +
-            $"{deliveryInProgress}"
+            $"In Progress: {deliveryInProgress}"
         );
 
         Debug.Log(
-            $"Remaining Time: " +
-            $"{remainingTime:0.00} sec"
+            $"Remaining Time: {remainingTime:0.00} sec"
         );
 
         Debug.Log(

@@ -403,6 +403,7 @@ public class StoreRoomManager : MonoBehaviour
             // Example:
             // 1 Box = 10
             // 10 + 5 = 15
+
             int reorderThreshold =
                 (stock.UnitsPerBox * 1) +
                 5;
@@ -443,7 +444,6 @@ public class StoreRoomManager : MonoBehaviour
         OnStoreRoomChanged?.Invoke();
     }
 
-
     // =========================================================
     // DEVELOPMENT TEST
     // =========================================================
@@ -451,8 +451,9 @@ public class StoreRoomManager : MonoBehaviour
     [ContextMenu("TEST - Add 24 Milk")]
     private void TestAddMilk()
     {
+        // food_001 = Milk
         AddStock(
-            "food_002",
+            "food_001",
             "Milk",
             10,
             24
@@ -462,8 +463,9 @@ public class StoreRoomManager : MonoBehaviour
     [ContextMenu("TEST - Remove 6 Milk")]
     private void TestRemoveMilk()
     {
+        // food_001 = Milk
         RemoveStock(
-            "food_002",
+            "food_001",
             6
         );
     }
@@ -472,5 +474,41 @@ public class StoreRoomManager : MonoBehaviour
     private void TestClearStoreRoom()
     {
         ClearStoreRoom();
+    }
+
+    [ContextMenu("TEST - Add 5 Milk")]
+    private void TestAdd5Milk()
+    {
+        // food_001 = Milk
+        AddStock(
+            "food_001",
+            "Milk",
+            10,
+            5
+        );
+    }
+
+    [ContextMenu("TEST - Add 10 Bread")]
+    private void TestAdd10Bread()
+    {
+        // food_002 = Bread
+        AddStock(
+            "food_002",
+            "Bread",
+            10,
+            10
+        );
+    }
+
+    [ContextMenu("TEST - Add 10 Tool Kit")]
+    private void TestAdd10ToolKit()
+    {
+        // tool_001 = Tool Kit
+        AddStock(
+            "tool_001",
+            "Tool Kit",
+            10,
+            10
+        );
     }
 }

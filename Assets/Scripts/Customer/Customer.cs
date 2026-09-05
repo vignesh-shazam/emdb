@@ -40,6 +40,29 @@ public class Customer
             : 0;
 
     // =========================
+    // COLLECTION
+    // =========================
+
+    public int CollectedQuantity { get; private set; }
+
+    public bool HasCollectedItems =>
+        CollectedQuantity > 0;
+
+    public bool HasCollectedAllItems =>
+        Request != null &&
+        CollectedQuantity >=
+        Request.Quantity;
+
+    public int RemainingQuantity =>
+        Request != null
+            ? Math.Max(
+                0,
+                Request.Quantity -
+                CollectedQuantity
+            )
+            : 0;
+
+    // =========================
     // CONSTRUCTOR
     // =========================
 
@@ -66,6 +89,8 @@ public class Customer
 
         Result =
             CustomerResult.None;
+
+        CollectedQuantity = 0;
     }
 
     // =========================
@@ -79,10 +104,40 @@ public class Customer
     }
 
     // =========================
+    // COLLECTION
+    // =========================
+
+    public bool CollectItems(
+        int quantity)
+    {
+        if (!HasValidRequest())
+        {
+            return false;
+        }
+
+        if (quantity <= 0)
+        {
+            return false;
+        }
+
+        if (quantity >
+            RemainingQuantity)
+        {
+            return false;
+        }
+
+        CollectedQuantity +=
+            quantity;
+
+        return true;
+    }
+
+    // =========================
     // PATIENCE
     // =========================
 
-    public void ReducePatience(float amount)
+    public void ReducePatience(
+        float amount)
     {
         if (amount <= 0f)
         {
