@@ -6,25 +6,25 @@ public class ShopManager : MonoBehaviour
 {
     public static ShopManager Instance { get; private set; }
 
-    // =========================
+    // =========================================================
     // EVENTS
-    // =========================
+    // =========================================================
 
     public static event Action OnShopUpdated;
     public static event Action OnShopUpgrade;
 
-    // =========================
+    // =========================================================
     // SHOP ITEMS
-    // =========================
+    // =========================================================
 
     [Header("Shop Items")]
     [SerializeField]
     private List<ShopItem> shopItems =
         new List<ShopItem>();
 
-    // =========================
+    // =========================================================
     // SHOP UPGRADE
-    // =========================
+    // =========================================================
 
     [Header("Shop Upgrade")]
     [SerializeField]
@@ -39,9 +39,9 @@ public class ShopManager : MonoBehaviour
     [SerializeField]
     private float upgradeCostMultiplier = 1.5f;
 
-    // =========================
+    // =========================================================
     // REVENUE
-    // =========================
+    // =========================================================
 
     [Header("Revenue Improvement")]
     [SerializeField]
@@ -50,9 +50,9 @@ public class ShopManager : MonoBehaviour
     [SerializeField]
     private float revenueIncreasePerUpgrade = 0.10f;
 
-    // =========================
+    // =========================================================
     // CUSTOMER GROWTH
-    // =========================
+    // =========================================================
 
     [Header("Customer Growth")]
     [SerializeField]
@@ -61,9 +61,9 @@ public class ShopManager : MonoBehaviour
     [SerializeField]
     private float customerGrowthPerUpgrade = 0.10f;
 
-    // =========================
+    // =========================================================
     // PURCHASE TRACKING
-    // =========================
+    // =========================================================
 
     private readonly Dictionary<string, int> purchasedItems =
         new Dictionary<string, int>();
@@ -71,9 +71,9 @@ public class ShopManager : MonoBehaviour
     private readonly Dictionary<string, int> currentCustomerPurchases =
         new Dictionary<string, int>();
 
-    // =========================
+    // =========================================================
     // PUBLIC PROPERTIES
-    // =========================
+    // =========================================================
 
     public IReadOnlyList<ShopItem> ShopItems =>
         shopItems;
@@ -97,13 +97,14 @@ public class ShopManager : MonoBehaviour
         ((shopUpgradeLevel - 1) *
         customerGrowthPerUpgrade);
 
-    // =========================
+    // =========================================================
     // AWAKE
-    // =========================
+    // =========================================================
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (Instance != null &&
+            Instance != this)
         {
             Destroy(gameObject);
             return;
@@ -114,9 +115,9 @@ public class ShopManager : MonoBehaviour
         InitializeShop();
     }
 
-    // =========================
+    // =========================================================
     // INITIALIZE
-    // =========================
+    // =========================================================
 
     private void InitializeShop()
     {
@@ -167,23 +168,33 @@ public class ShopManager : MonoBehaviour
             customerGrowthPerUpgrade = 0f;
         }
 
+        // =====================================================
+        // DEFAULT SHOP ITEMS
+        //
+        // IMPORTANT ITEM MAPPING
+        //
+        // food_001 → Milk
+        // food_002 → Bread
+        // tool_001 → Tool Kit
+        // =====================================================
+
         if (shopItems.Count == 0)
         {
             shopItems.Add(
                 new ShopItem(
                     "food_001",
-                    "Bread",
-                    50,
-                    25
+                    "Milk",
+                    200,
+                    80
                 )
             );
 
             shopItems.Add(
                 new ShopItem(
                     "food_002",
-                    "Milk",
-                    60,
-                    30
+                    "Bread",
+                    300,
+                    40
                 )
             );
 
@@ -192,7 +203,7 @@ public class ShopManager : MonoBehaviour
                     "tool_001",
                     "Tool Kit",
                     500,
-                    250
+                    500
                 )
             );
         }
@@ -212,9 +223,9 @@ public class ShopManager : MonoBehaviour
     // SHOP UPGRADE SYSTEM
     // =========================================================
 
-    // =========================
+    // =========================================================
     // GET UPGRADE COST
-    // =========================
+    // =========================================================
 
     public int GetUpgradeCost()
     {
@@ -233,9 +244,9 @@ public class ShopManager : MonoBehaviour
         return Mathf.RoundToInt(cost);
     }
 
-    // =========================
+    // =========================================================
     // UPGRADE SHOP
-    // =========================
+    // =========================================================
 
     public bool UpgradeShop()
     {
@@ -262,9 +273,9 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // =========================
+        // =====================================================
         // SHOP UPGRADE EXPENSE
-        // =========================
+        // =====================================================
 
         bool expenseSuccessful =
             ExpenseManager.Instance.Spend(
@@ -285,9 +296,9 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // =========================
+        // =====================================================
         // INCREASE LEVEL
-        // =========================
+        // =====================================================
 
         shopUpgradeLevel++;
 
@@ -305,36 +316,36 @@ public class ShopManager : MonoBehaviour
         return true;
     }
 
-    // =========================
+    // =========================================================
     // GET SHOP LEVEL
-    // =========================
+    // =========================================================
 
     public int GetShopLevel()
     {
         return shopUpgradeLevel;
     }
 
-    // =========================
+    // =========================================================
     // GET NEXT UPGRADE COST
-    // =========================
+    // =========================================================
 
     public int GetNextUpgradeCost()
     {
         return GetUpgradeCost();
     }
 
-    // =========================
+    // =========================================================
     // GET REVENUE MULTIPLIER
-    // =========================
+    // =========================================================
 
     public float GetRevenueMultiplier()
     {
         return RevenueMultiplier;
     }
 
-    // =========================
+    // =========================================================
     // GET CUSTOMER GROWTH
-    // =========================
+    // =========================================================
 
     public float GetCustomerGrowthMultiplier()
     {
@@ -345,11 +356,12 @@ public class ShopManager : MonoBehaviour
     // SHOP ITEMS
     // =========================================================
 
-    // =========================
+    // =========================================================
     // GET ITEM
-    // =========================
+    // =========================================================
 
-    public ShopItem GetItem(string itemId)
+    public ShopItem GetItem(
+        string itemId)
     {
         if (string.IsNullOrWhiteSpace(itemId))
         {
@@ -358,6 +370,11 @@ public class ShopManager : MonoBehaviour
 
         foreach (ShopItem item in shopItems)
         {
+            if (item == null)
+            {
+                continue;
+            }
+
             if (item.ItemId == itemId)
             {
                 return item;
@@ -371,7 +388,8 @@ public class ShopManager : MonoBehaviour
     // BUY ITEM
     // =========================================================
 
-    public bool BuyItem(string itemId)
+    public bool BuyItem(
+        string itemId)
     {
         ShopItem item =
             GetItem(itemId);
@@ -404,9 +422,9 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // =========================
+        // =====================================================
         // CHECK CURRENT CUSTOMER
-        // =========================
+        // =====================================================
 
         Customer currentCustomer =
             GetCurrentCustomer();
@@ -420,9 +438,9 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // =========================
+        // =====================================================
         // ONLY REQUESTED ITEM
-        // =========================
+        // =====================================================
 
         if (currentCustomer.RequestedItemId !=
             itemId)
@@ -436,9 +454,9 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // =========================
+        // =====================================================
         // CHECK REQUIRED QUANTITY
-        // =========================
+        // =====================================================
 
         int inventoryQuantity =
             InventoryManager.Instance.GetQuantity(
@@ -458,12 +476,12 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // =========================
+        // =====================================================
         // CHECK MONEY
-        // =========================
+        // =====================================================
 
         if (!MoneyManager.Instance.CanAfford(
-            item.BuyPrice))
+                item.BuyPrice))
         {
             Debug.LogWarning(
                 $"Buy failed: Insufficient money. " +
@@ -474,9 +492,9 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // =========================
+        // =====================================================
         // REMOVE MONEY
-        // =========================
+        // =====================================================
 
         bool moneyRemoved =
             MoneyManager.Instance.RemoveMoney(
@@ -493,9 +511,9 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // =========================
+        // =====================================================
         // ADD INVENTORY
-        // =========================
+        // =====================================================
 
         bool inventoryAdded =
             InventoryManager.Instance.AddItem(
@@ -518,25 +536,25 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // =========================
+        // =====================================================
         // RECORD SHOP PURCHASE
-        // =========================
+        // =====================================================
 
         RecordShopPurchase(
             item
         );
 
-        // =========================
+        // =====================================================
         // TRACK TOTAL OWNERSHIP
-        // =========================
+        // =====================================================
 
         AddPurchasedItem(
             item.ItemId
         );
 
-        // =========================
+        // =====================================================
         // TRACK CURRENT CUSTOMER
-        // =========================
+        // =====================================================
 
         AddCurrentCustomerPurchase(
             item.ItemId
@@ -555,9 +573,9 @@ public class ShopManager : MonoBehaviour
         return true;
     }
 
-    // =========================
+    // =========================================================
     // RECORD SHOP PURCHASE
-    // =========================
+    // =========================================================
 
     private void RecordShopPurchase(
         ShopItem item)
@@ -595,7 +613,8 @@ public class ShopManager : MonoBehaviour
     // SELL / UNDO CURRENT BUY
     // =========================================================
 
-    public bool SellItem(string itemId)
+    public bool SellItem(
+        string itemId)
     {
         ShopItem item =
             GetItem(itemId);
@@ -628,9 +647,9 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // =========================
+        // =====================================================
         // ONLY UNDO CURRENT CUSTOMER BUY
-        // =========================
+        // =====================================================
 
         int customerPurchaseQuantity =
             GetCurrentCustomerPurchaseQuantity(
@@ -647,9 +666,9 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // =========================
+        // =====================================================
         // REMOVE FROM INVENTORY
-        // =========================
+        // =====================================================
 
         bool inventoryRemoved =
             InventoryManager.Instance.RemoveItem(
@@ -667,25 +686,25 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // =========================
+        // =====================================================
         // RETURN MONEY
-        // =========================
+        // =====================================================
 
         MoneyManager.Instance.AddMoney(
             item.BuyPrice
         );
 
-        // =========================
+        // =====================================================
         // REMOVE OWNERSHIP
-        // =========================
+        // =====================================================
 
         RemovePurchasedItem(
             item.ItemId
         );
 
-        // =========================
+        // =====================================================
         // REMOVE CUSTOMER PURCHASE
-        // =========================
+        // =====================================================
 
         RemoveCurrentCustomerPurchase(
             item.ItemId
@@ -706,9 +725,9 @@ public class ShopManager : MonoBehaviour
     // CUSTOMER PURCHASE
     // =========================================================
 
-    // =========================
+    // =========================================================
     // COMPLETE CUSTOMER PURCHASE
-    // =========================
+    // =========================================================
 
     public void CompleteCurrentCustomerPurchase()
     {
@@ -719,9 +738,9 @@ public class ShopManager : MonoBehaviour
         );
     }
 
-    // =========================
+    // =========================================================
     // CANCEL CUSTOMER PURCHASE
-    // =========================
+    // =========================================================
 
     public void CancelCurrentCustomerPurchases()
     {
@@ -801,9 +820,9 @@ public class ShopManager : MonoBehaviour
     // PURCHASE QUANTITIES
     // =========================================================
 
-    // =========================
+    // =========================================================
     // TOTAL PURCHASED QUANTITY
-    // =========================
+    // =========================================================
 
     public int GetPurchasedQuantity(
         string itemId)
@@ -823,9 +842,9 @@ public class ShopManager : MonoBehaviour
         return 0;
     }
 
-    // =========================
+    // =========================================================
     // CURRENT CUSTOMER QUANTITY
-    // =========================
+    // =========================================================
 
     public int GetCurrentCustomerPurchaseQuantity(
         string itemId)
@@ -849,9 +868,9 @@ public class ShopManager : MonoBehaviour
     // PURCHASE TRACKING
     // =========================================================
 
-    // =========================
+    // =========================================================
     // ADD TOTAL PURCHASE
-    // =========================
+    // =========================================================
 
     private void AddPurchasedItem(
         string itemId)
@@ -869,9 +888,9 @@ public class ShopManager : MonoBehaviour
         }
     }
 
-    // =========================
+    // =========================================================
     // REMOVE TOTAL PURCHASE
-    // =========================
+    // =========================================================
 
     private void RemovePurchasedItem(
         string itemId,
@@ -893,9 +912,9 @@ public class ShopManager : MonoBehaviour
         }
     }
 
-    // =========================
+    // =========================================================
     // ADD CURRENT CUSTOMER BUY
-    // =========================
+    // =========================================================
 
     private void AddCurrentCustomerPurchase(
         string itemId)
@@ -914,9 +933,9 @@ public class ShopManager : MonoBehaviour
         }
     }
 
-    // =========================
+    // =========================================================
     // REMOVE CURRENT CUSTOMER BUY
-    // =========================
+    // =========================================================
 
     private void RemoveCurrentCustomerPurchase(
         string itemId)
