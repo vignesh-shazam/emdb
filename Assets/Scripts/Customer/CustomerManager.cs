@@ -19,9 +19,9 @@ public class CustomerManager : MonoBehaviour
     public int CustomerCount =>
         activeCustomers.Count;
 
-    // =========================
+    // =========================================================
     // AWAKE
-    // =========================
+    // =========================================================
 
     private void Awake()
     {
@@ -37,9 +37,9 @@ public class CustomerManager : MonoBehaviour
         InitializeCustomers();
     }
 
-    // =========================
+    // =========================================================
     // INITIALIZE
-    // =========================
+    // =========================================================
 
     private void InitializeCustomers()
     {
@@ -55,30 +55,26 @@ public class CustomerManager : MonoBehaviour
         );
     }
 
-    // =========================
+    // =========================================================
     // GET CUSTOMER
-    // =========================
+    // =========================================================
 
     public Customer GetCustomer(
         string customerId)
     {
-        if (string.IsNullOrWhiteSpace(
-                customerId))
+        if (string.IsNullOrWhiteSpace(customerId))
         {
             return null;
         }
 
-        foreach (
-            Customer customer
-            in activeCustomers)
+        foreach (Customer customer in activeCustomers)
         {
             if (customer == null)
             {
                 continue;
             }
 
-            if (customer.CustomerId ==
-                customerId)
+            if (customer.CustomerId == customerId)
             {
                 return customer;
             }
@@ -87,9 +83,9 @@ public class CustomerManager : MonoBehaviour
         return null;
     }
 
-    // =========================
+    // =========================================================
     // ADD CUSTOMER
-    // =========================
+    // =========================================================
 
     public bool AddCustomer(
         Customer customer)
@@ -103,8 +99,7 @@ public class CustomerManager : MonoBehaviour
             return false;
         }
 
-        if (string.IsNullOrWhiteSpace(
-                customer.CustomerId))
+        if (string.IsNullOrWhiteSpace(customer.CustomerId))
         {
             Debug.LogWarning(
                 "Add customer failed: Customer ID is empty."
@@ -113,8 +108,7 @@ public class CustomerManager : MonoBehaviour
             return false;
         }
 
-        if (GetCustomer(
-                customer.CustomerId) != null)
+        if (GetCustomer(customer.CustomerId) != null)
         {
             Debug.LogWarning(
                 $"Add customer failed: " +
@@ -125,9 +119,7 @@ public class CustomerManager : MonoBehaviour
             return false;
         }
 
-        activeCustomers.Add(
-            customer
-        );
+        activeCustomers.Add(customer);
 
         Debug.Log(
             $"Customer added | " +
@@ -140,29 +132,50 @@ public class CustomerManager : MonoBehaviour
         return true;
     }
 
-    // =========================
+    // =========================================================
     // REMOVE CUSTOMER
-    // =========================
+    // =========================================================
 
     public bool RemoveCustomer(
         string customerId)
     {
-        Customer customer =
-            GetCustomer(customerId);
-
-        if (customer == null)
+        if (string.IsNullOrWhiteSpace(customerId))
         {
             Debug.LogWarning(
-                $"Remove customer failed: " +
-                $"Customer not found: {customerId}"
+                "Remove customer skipped: Customer ID is empty."
             );
 
             return false;
         }
 
-        activeCustomers.Remove(
-            customer
-        );
+        Customer customer =
+            GetCustomer(customerId);
+
+        if (customer == null)
+        {
+            // Another system may have already removed this customer.
+            Debug.Log(
+                $"Remove customer skipped: " +
+                $"Customer already removed or no longer active. " +
+                $"ID: {customerId}"
+            );
+
+            return false;
+        }
+
+        bool removed =
+            activeCustomers.Remove(customer);
+
+        if (!removed)
+        {
+            Debug.LogWarning(
+                $"Remove customer failed: " +
+                $"Could not remove customer from active list. " +
+                $"ID: {customerId}"
+            );
+
+            return false;
+        }
 
         Debug.Log(
             $"Customer removed | " +
@@ -176,23 +189,28 @@ public class CustomerManager : MonoBehaviour
         return true;
     }
 
-    // =========================
+    // =========================================================
     // HAS CUSTOMER
-    // =========================
+    // =========================================================
 
     public bool HasCustomer(
         string customerId)
     {
-        return GetCustomer(
-            customerId) != null;
+        return GetCustomer(customerId) != null;
     }
 
-    // =========================
+    // =========================================================
     // CLEAR CUSTOMERS
-    // =========================
+    // =========================================================
 
     public void ClearCustomers()
     {
+        if (activeCustomers == null)
+        {
+            activeCustomers =
+                new List<Customer>();
+        }
+
         activeCustomers.Clear();
 
         OnCustomerListChanged?.Invoke();
@@ -202,9 +220,9 @@ public class CustomerManager : MonoBehaviour
         );
     }
 
-    // =========================
+    // =========================================================
     // CREATE CUSTOMER
-    // =========================
+    // =========================================================
 
     public Customer CreateCustomer(
         string customerId,
@@ -214,45 +232,37 @@ public class CustomerManager : MonoBehaviour
         int quantity = 1,
         float patience = 100f)
     {
-        if (string.IsNullOrWhiteSpace(
-                customerId))
+        if (string.IsNullOrWhiteSpace(customerId))
         {
             Debug.LogWarning(
-                "Create customer failed: " +
-                "Customer ID is empty."
+                "Create customer failed: Customer ID is empty."
             );
 
             return null;
         }
 
-        if (string.IsNullOrWhiteSpace(
-                customerName))
+        if (string.IsNullOrWhiteSpace(customerName))
         {
             Debug.LogWarning(
-                "Create customer failed: " +
-                "Customer name is empty."
+                "Create customer failed: Customer name is empty."
             );
 
             return null;
         }
 
-        if (string.IsNullOrWhiteSpace(
-                itemId))
+        if (string.IsNullOrWhiteSpace(itemId))
         {
             Debug.LogWarning(
-                "Create customer failed: " +
-                "Item ID is empty."
+                "Create customer failed: Item ID is empty."
             );
 
             return null;
         }
 
-        if (string.IsNullOrWhiteSpace(
-                itemName))
+        if (string.IsNullOrWhiteSpace(itemName))
         {
             Debug.LogWarning(
-                "Create customer failed: " +
-                "Item name is empty."
+                "Create customer failed: Item name is empty."
             );
 
             return null;
@@ -304,6 +314,24 @@ public class CustomerManager : MonoBehaviour
     public bool CollectCustomerItems(
         string customerId)
     {
+        if (ShopManager.Instance == null)
+        {
+            Debug.LogError(
+                "Collection failed: ShopManager not found."
+            );
+
+            return false;
+        }
+
+        if (!ShopManager.Instance.IsShopOpen)
+        {
+            Debug.LogWarning(
+                "Collection failed: Shop is currently closed."
+            );
+
+            return false;
+        }
+
         Customer customer =
             GetCustomer(customerId);
 
@@ -317,10 +345,6 @@ public class CustomerManager : MonoBehaviour
             return false;
         }
 
-        // =========================
-        // VALIDATE REQUEST
-        // =========================
-
         if (!customer.HasValidRequest())
         {
             Debug.LogWarning(
@@ -331,10 +355,6 @@ public class CustomerManager : MonoBehaviour
             return false;
         }
 
-        // =========================
-        // RACK MANAGER
-        // =========================
-
         if (RackManager.Instance == null)
         {
             Debug.LogError(
@@ -343,10 +363,6 @@ public class CustomerManager : MonoBehaviour
 
             return false;
         }
-
-        // =========================
-        // CHECK REMAINING QUANTITY
-        // =========================
 
         int remainingQuantity =
             customer.RemainingQuantity;
@@ -362,17 +378,12 @@ public class CustomerManager : MonoBehaviour
             return false;
         }
 
-        // =========================
-        // CHECK RACK STOCK
-        // =========================
-
         int rackQuantity =
             RackManager.Instance.GetQuantity(
                 customer.RequestedItemId
             );
 
-        if (rackQuantity <
-            remainingQuantity)
+        if (rackQuantity < remainingQuantity)
         {
             Debug.LogWarning(
                 $"Collection failed: Not enough rack stock. " +
@@ -383,10 +394,6 @@ public class CustomerManager : MonoBehaviour
 
             return false;
         }
-
-        // =========================
-        // REMOVE FROM RACK
-        // =========================
 
         bool removed =
             RackManager.Instance.RemoveStock(
@@ -405,14 +412,8 @@ public class CustomerManager : MonoBehaviour
             return false;
         }
 
-        // =========================
-        // UPDATE CUSTOMER
-        // =========================
-
         bool collected =
-            customer.CollectItems(
-                remainingQuantity
-            );
+            customer.CollectItems(remainingQuantity);
 
         if (!collected)
         {
@@ -425,272 +426,40 @@ public class CustomerManager : MonoBehaviour
             return false;
         }
 
-        // =========================
-        // SUCCESS
-        // =========================
-
         Debug.Log(
-    $"CUSTOMER ITEMS COLLECTED | " +
-    $"Customer: {customer.CustomerName} | " +
-    $"Item: {customer.RequestedItemName} | " +
-    $"Quantity: {remainingQuantity} | " +
-    $"Collected: {customer.CollectedQuantity} | " +
-    $"Remaining: {customer.RemainingQuantity} | " +
-    $"Rack Remaining: {RackManager.Instance.GetQuantity(customer.RequestedItemId)}"
-);
+            $"CUSTOMER ITEMS COLLECTED | " +
+            $"Customer: {customer.CustomerName} | " +
+            $"Item: {customer.RequestedItemName} | " +
+            $"Quantity: {remainingQuantity} | " +
+            $"Collected: {customer.CollectedQuantity} | " +
+            $"Remaining: {customer.RemainingQuantity} | " +
+            $"Rack Remaining: " +
+            $"{RackManager.Instance.GetQuantity(customer.RequestedItemId)}"
+        );
 
         OnCustomerListChanged?.Invoke();
 
         return true;
     }
 
-    // =========================
-    // SERVE CUSTOMER
-    // =========================
+    // =========================================================
+    // LEGACY SERVE CUSTOMER - DISABLED
+    // =========================================================
 
+    [Obsolete(
+        "ServeCustomer() is disabled. " +
+        "Use CollectCustomerItems() -> BillingManager -> PaymentManager instead."
+    )]
     public bool ServeCustomer(
         string customerId)
     {
-        Customer customer =
-            GetCustomer(customerId);
-
-        if (customer == null)
-        {
-            Debug.LogWarning(
-                $"Serve failed: Customer not found. " +
-                $"ID: {customerId}"
-            );
-
-            return false;
-        }
-
-        // =========================
-        // VALIDATE REQUEST
-        // =========================
-
-        if (!customer.HasValidRequest())
-        {
-            Debug.LogWarning(
-                $"Serve failed: Invalid customer request. " +
-                $"Customer: {customer.CustomerName}"
-            );
-
-            return false;
-        }
-
-        // =========================
-        // INVENTORY MANAGER
-        // =========================
-
-        if (InventoryManager.Instance == null)
-        {
-            Debug.LogError(
-                "Serve failed: InventoryManager not found."
-            );
-
-            return false;
-        }
-
-        // =========================
-        // SHOP MANAGER
-        // =========================
-
-        if (ShopManager.Instance == null)
-        {
-            Debug.LogError(
-                "Serve failed: ShopManager not found."
-            );
-
-            return false;
-        }
-
-        // =========================
-        // MONEY MANAGER
-        // =========================
-
-        if (MoneyManager.Instance == null)
-        {
-            Debug.LogError(
-                "Serve failed: MoneyManager not found."
-            );
-
-            return false;
-        }
-
-        // =========================
-        // CHECK INVENTORY
-        // =========================
-
-        int availableQuantity =
-            InventoryManager.Instance.GetQuantity(
-                customer.RequestedItemId
-            );
-
-        if (availableQuantity <
-            customer.RequestedQuantity)
-        {
-            Debug.LogWarning(
-                $"Serve failed: Not enough inventory. " +
-                $"Item: {customer.RequestedItemName} | " +
-                $"Required: {customer.RequestedQuantity} | " +
-                $"Available: {availableQuantity}"
-            );
-
-            return false;
-        }
-
-        // =========================
-        // GET SHOP ITEM
-        // =========================
-
-        ShopItem shopItem =
-            ShopManager.Instance.GetItem(
-                customer.RequestedItemId
-            );
-
-        if (shopItem == null)
-        {
-            Debug.LogWarning(
-                $"Serve failed: Shop item not found. " +
-                $"ID: {customer.RequestedItemId}"
-            );
-
-            return false;
-        }
-
-        // =========================
-        // REMOVE REQUESTED ITEMS
-        // =========================
-
-        bool removed =
-            InventoryManager.Instance.RemoveItem(
-                customer.RequestedItemId,
-                customer.RequestedQuantity
-            );
-
-        if (!removed)
-        {
-            Debug.LogWarning(
-                "Serve failed: Could not remove " +
-                "requested items from inventory."
-            );
-
-            return false;
-        }
-
-        // =========================
-        // CALCULATE PAYMENT
-        // =========================
-
-        int payment =
-            shopItem.SellPrice *
-            customer.RequestedQuantity;
-
-        // =========================
-        // ADD PAYMENT
-        // =========================
-
-        MoneyManager.Instance.AddMoney(
-            payment
+        Debug.LogWarning(
+            "ServeCustomer() is disabled. " +
+            "Use the new flow: " +
+            "CollectCustomerItems() -> Billing -> Payment."
         );
 
-        // =========================
-        // RECORD SHOP INCOME
-        // =========================
-
-        RecordShopSale(
-            payment,
-            customer
-        );
-
-        // =========================
-        // COMPLETE PURCHASE
-        // =========================
-
-        ShopManager.Instance
-            .CompleteCurrentCustomerPurchase();
-
-        // =========================
-        // MARK AS SERVED
-        // =========================
-
-        customer.MarkServed();
-
-        // =========================
-        // UPDATE SATISFACTION
-        // =========================
-
-        if (CustomerSatisfactionManager.Instance != null)
-        {
-            CustomerSatisfactionManager.Instance
-                .CustomerServed(customer);
-        }
-
-        // =========================
-        // GENERATE TIP
-        // =========================
-
-        if (CustomerTipManager.Instance != null)
-        {
-            CustomerTipManager.Instance
-                .AddTip(customer);
-        }
-
-        // =========================
-        // SUCCESS LOG
-        // =========================
-
-        Debug.Log(
-            $"Customer served successfully | " +
-            $"Customer: {customer.CustomerName} | " +
-            $"ID: {customer.CustomerId} | " +
-            $"Item: {customer.RequestedItemName} x" +
-            $"{customer.RequestedQuantity} | " +
-            $"Payment: Rs. {payment:N0} | " +
-            $"Result: {customer.Result}"
-        );
-
-        // =========================
-        // REMOVE CUSTOMER
-        // =========================
-
-        RemoveCustomer(
-            customerId
-        );
-
-        return true;
-    }
-
-    // =========================
-    // RECORD SHOP SALE
-    // =========================
-
-    private void RecordShopSale(
-        int payment,
-        Customer customer)
-    {
-        if (FinanceTransactionManager.Instance == null)
-        {
-            Debug.LogWarning(
-                "CustomerManager: " +
-                "FinanceTransactionManager not found. " +
-                "Shop sale ledger entry skipped."
-            );
-
-            return;
-        }
-
-        FinanceTransactionManager.Instance.RecordIncome(
-            FinanceAccountType.Current,
-            payment,
-            "Shop Sale"
-        );
-
-        Debug.Log(
-            $"Shop sale recorded | " +
-            $"Customer: {customer.CustomerName} | " +
-            $"Amount: Rs. {payment:N0}"
-        );
+        return false;
     }
 
     // =========================================================
@@ -726,9 +495,16 @@ public class CustomerManager : MonoBehaviour
         Customer customer =
             activeCustomers[0];
 
-        CollectCustomerItems(
-            customer.CustomerId
-        );
+        if (customer == null)
+        {
+            Debug.LogWarning(
+                "Customer Test: Current customer is null."
+            );
+
+            return;
+        }
+
+        CollectCustomerItems(customer.CustomerId);
     }
 
     [ContextMenu("TEST - Show Customer")]
@@ -744,9 +520,7 @@ public class CustomerManager : MonoBehaviour
             return;
         }
 
-        foreach (
-            Customer customer
-            in activeCustomers)
+        foreach (Customer customer in activeCustomers)
         {
             if (customer == null)
             {

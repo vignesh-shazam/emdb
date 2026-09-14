@@ -14,7 +14,7 @@ public class CustomerSpawner : MonoBehaviour
     private string[] customerNames =
     {
         "Shanthi",
-        "Dursaisamy",
+        "Duraisamy",
         "Divya",
         "Rithick Ram",
         "Rithanya",
@@ -45,41 +45,98 @@ public class CustomerSpawner : MonoBehaviour
 
     private string lastCustomerName;
 
-    // =========================
+    // =========================================================
     // ENABLE
-    // =========================
+    // =========================================================
 
     private void OnEnable()
     {
         CustomerManager.OnCustomerListChanged +=
             HandleCustomerListChanged;
+
+        ShopManager.OnShopUpdated +=
+            HandleShopUpdated;
     }
 
-    // =========================
+    // =========================================================
     // DISABLE
-    // =========================
+    // =========================================================
 
     private void OnDisable()
     {
         CustomerManager.OnCustomerListChanged -=
             HandleCustomerListChanged;
+
+        ShopManager.OnShopUpdated -=
+            HandleShopUpdated;
     }
 
-    // =========================
+    // =========================================================
     // START
-    // =========================
+    // =========================================================
 
     private void Start()
     {
+        if (IsShopClosed())
+        {
+            Debug.Log(
+                "Customer spawning skipped: Shop is closed."
+            );
+
+            return;
+        }
+
         SpawnCustomer();
     }
 
-    // =========================
+    // =========================================================
+    // SHOP STATUS
+    // =========================================================
+
+    private bool IsShopClosed()
+    {
+        return ShopManager.Instance != null &&
+               !ShopManager.Instance.IsShopOpen;
+    }
+
+    private void HandleShopUpdated()
+    {
+        if (IsShopClosed())
+        {
+            StopNextCustomerTimer();
+
+            Debug.Log(
+                "CustomerSpawner: Shop closed. " +
+                "New customer spawning stopped."
+            );
+
+            return;
+        }
+
+        if (currentCustomerObject == null &&
+            !waitingForNextCustomer &&
+            CustomerManager.Instance != null &&
+            CustomerManager.Instance.CustomerCount == 0)
+        {
+            StartNextCustomerTimer();
+        }
+    }
+
+    // =========================================================
     // SPAWN CUSTOMER
-    // =========================
+    // =========================================================
 
     public void SpawnCustomer()
     {
+        if (IsShopClosed())
+        {
+            Debug.LogWarning(
+                "Customer spawn skipped: Shop is closed."
+            );
+
+            return;
+        }
+
         if (currentCustomerObject != null)
         {
             Debug.LogWarning(
@@ -120,23 +177,11 @@ public class CustomerSpawner : MonoBehaviour
             return;
         }
 
-        // =========================
-        // CREATE ID
-        // =========================
-
         currentCustomerId =
             CreateCustomerId();
 
-        // =========================
-        // CREATE NAME
-        // =========================
-
         string newCustomerName =
             GetNextCustomerName();
-
-        // =========================
-        // CREATE REQUEST
-        // =========================
 
         CustomerRequest request =
             CustomerRequestPool.Instance
@@ -151,10 +196,6 @@ public class CustomerSpawner : MonoBehaviour
 
             return;
         }
-
-        // =========================
-        // SPAWN POSITION
-        // =========================
 
         Vector3 spawnPosition =
             transform.position;
@@ -171,20 +212,12 @@ public class CustomerSpawner : MonoBehaviour
                 spawnPoint.rotation;
         }
 
-        // =========================
-        // CREATE GAMEOBJECT
-        // =========================
-
         currentCustomerObject =
             Instantiate(
                 customerPrefab,
                 spawnPosition,
                 spawnRotation
             );
-
-        // =========================
-        // CREATE CUSTOMER DATA
-        // =========================
 
         Customer customer =
             CustomerManager.Instance.CreateCustomer(
@@ -221,9 +254,9 @@ public class CustomerSpawner : MonoBehaviour
         );
     }
 
-    // =========================
+    // =========================================================
     // CUSTOMER LIST CHANGED
-    // =========================
+    // =========================================================
 
     private void HandleCustomerListChanged()
     {
@@ -243,25 +276,34 @@ public class CustomerSpawner : MonoBehaviour
             {
                 DestroyCurrentCustomer();
 
-                StartNextCustomerTimer();
+                if (!IsShopClosed())
+                {
+                    StartNextCustomerTimer();
+                }
             }
 
             return;
         }
 
-        if (!waitingForNextCustomer &&
+        if (!IsShopClosed() &&
+            !waitingForNextCustomer &&
             CustomerManager.Instance.CustomerCount == 0)
         {
             StartNextCustomerTimer();
         }
     }
 
-    // =========================
+    // =========================================================
     // START NEXT CUSTOMER TIMER
-    // =========================
+    // =========================================================
 
     private void StartNextCustomerTimer()
     {
+        if (IsShopClosed())
+        {
+            return;
+        }
+
         if (waitingForNextCustomer)
         {
             return;
@@ -272,9 +314,27 @@ public class CustomerSpawner : MonoBehaviour
         );
     }
 
-    // =========================
+    // =========================================================
+    // STOP NEXT CUSTOMER TIMER
+    // =========================================================
+
+    private void StopNextCustomerTimer()
+    {
+        if (waitingForNextCustomer)
+        {
+            StopAllCoroutines();
+
+            waitingForNextCustomer = false;
+
+            Debug.Log(
+                "CustomerSpawner: Next customer timer stopped."
+            );
+        }
+    }
+
+    // =========================================================
     // NEXT CUSTOMER
-    // =========================
+    // =========================================================
 
     private IEnumerator SpawnNextCustomer()
     {
@@ -291,12 +351,22 @@ public class CustomerSpawner : MonoBehaviour
 
         waitingForNextCustomer = false;
 
+        if (IsShopClosed())
+        {
+            Debug.Log(
+                "Next customer spawn cancelled: " +
+                "Shop is closed."
+            );
+
+            yield break;
+        }
+
         SpawnCustomer();
     }
 
-    // =========================
+    // =========================================================
     // CREATE CUSTOMER ID
-    // =========================
+    // =========================================================
 
     private string CreateCustomerId()
     {
@@ -308,9 +378,9 @@ public class CustomerSpawner : MonoBehaviour
         return id;
     }
 
-    // =========================
+    // =========================================================
     // GET CUSTOMER NAME
-    // =========================
+    // =========================================================
 
     private string GetNextCustomerName()
     {
@@ -362,9 +432,9 @@ public class CustomerSpawner : MonoBehaviour
         return selectedName;
     }
 
-    // =========================
+    // =========================================================
     // DESTROY CUSTOMER
-    // =========================
+    // =========================================================
 
     private void DestroyCurrentCustomer()
     {
@@ -385,13 +455,14 @@ public class CustomerSpawner : MonoBehaviour
         );
     }
 
-    // =========================
+    // =========================================================
     // MANUAL DESPAWN
-    // =========================
+    // =========================================================
 
     public void DespawnCustomer()
     {
-        if (CustomerManager.Instance != null)
+        if (CustomerManager.Instance != null &&
+            !string.IsNullOrWhiteSpace(currentCustomerId))
         {
             CustomerManager.Instance.RemoveCustomer(
                 currentCustomerId
@@ -401,5 +472,21 @@ public class CustomerSpawner : MonoBehaviour
         {
             DestroyCurrentCustomer();
         }
+    }
+
+    // =========================================================
+    // DEVELOPMENT TESTS
+    // =========================================================
+
+    [ContextMenu("TEST - Spawn Customer")]
+    private void TestSpawnCustomer()
+    {
+        SpawnCustomer();
+    }
+
+    [ContextMenu("TEST - Stop Customer Timer")]
+    private void TestStopCustomerTimer()
+    {
+        StopNextCustomerTimer();
     }
 }

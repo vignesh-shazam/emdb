@@ -14,6 +14,14 @@ public class ShopManager : MonoBehaviour
     public static event Action OnShopUpgrade;
 
     // =========================================================
+    // SHOP STATUS
+    // =========================================================
+
+    [Header("Shop Status")]
+    [SerializeField]
+    private bool isShopOpen = true;
+
+    // =========================================================
     // SHOP ITEMS
     // =========================================================
 
@@ -74,6 +82,9 @@ public class ShopManager : MonoBehaviour
     // =========================================================
     // PUBLIC PROPERTIES
     // =========================================================
+
+    public bool IsShopOpen =>
+        isShopOpen;
 
     public IReadOnlyList<ShopItem> ShopItems =>
         shopItems;
@@ -171,8 +182,6 @@ public class ShopManager : MonoBehaviour
         // =====================================================
         // DEFAULT SHOP ITEMS
         //
-        // IMPORTANT ITEM MAPPING
-        //
         // food_001 → Milk
         // food_002 → Bread
         // tool_001 → Tool Kit
@@ -210,10 +219,55 @@ public class ShopManager : MonoBehaviour
 
         Debug.Log(
             $"Shop initialized | " +
+            $"Status: {(IsShopOpen ? "Open" : "Closed")} | " +
             $"Level: {shopUpgradeLevel} | " +
             $"Items available: {shopItems.Count} | " +
             $"Revenue Multiplier: {RevenueMultiplier:F2}x | " +
             $"Customer Growth: {CustomerGrowthMultiplier:F2}x"
+        );
+
+        OnShopUpdated?.Invoke();
+    }
+
+    // =========================================================
+    // SHOP OPEN / CLOSE
+    // =========================================================
+
+    public void OpenShop()
+    {
+        if (isShopOpen)
+        {
+            Debug.LogWarning(
+                "Shop is already open."
+            );
+
+            return;
+        }
+
+        isShopOpen = true;
+
+        Debug.Log(
+            "SHOP OPENED."
+        );
+
+        OnShopUpdated?.Invoke();
+    }
+
+    public void CloseShop()
+    {
+        if (!isShopOpen)
+        {
+            Debug.LogWarning(
+                "Shop is already closed."
+            );
+
+            return;
+        }
+
+        isShopOpen = false;
+
+        Debug.Log(
+            "SHOP CLOSED."
         );
 
         OnShopUpdated?.Invoke();
@@ -273,10 +327,6 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // =====================================================
-        // SHOP UPGRADE EXPENSE
-        // =====================================================
-
         bool expenseSuccessful =
             ExpenseManager.Instance.Spend(
                 upgradeCost,
@@ -295,10 +345,6 @@ public class ShopManager : MonoBehaviour
 
             return false;
         }
-
-        // =====================================================
-        // INCREASE LEVEL
-        // =====================================================
 
         shopUpgradeLevel++;
 
@@ -391,6 +437,15 @@ public class ShopManager : MonoBehaviour
     public bool BuyItem(
         string itemId)
     {
+        if (!IsShopOpen)
+        {
+            Debug.LogWarning(
+                "Buy failed: Shop is currently closed."
+            );
+
+            return false;
+        }
+
         ShopItem item =
             GetItem(itemId);
 
@@ -984,5 +1039,21 @@ public class ShopManager : MonoBehaviour
 
         return
             CustomerManager.Instance.ActiveCustomers[0];
+    }
+
+    // =========================================================
+    // DEVELOPMENT TESTS
+    // =========================================================
+
+    [ContextMenu("TEST - Open Shop")]
+    private void TestOpenShop()
+    {
+        OpenShop();
+    }
+
+    [ContextMenu("TEST - Close Shop")]
+    private void TestCloseShop()
+    {
+        CloseShop();
     }
 }

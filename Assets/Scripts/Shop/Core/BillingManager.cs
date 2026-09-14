@@ -71,6 +71,28 @@ public class BillingManager : MonoBehaviour
         string customerId)
     {
         // =====================================================
+        // SHOP STATUS
+        // =====================================================
+
+        if (ShopManager.Instance == null)
+        {
+            Debug.LogError(
+                "Billing failed: ShopManager not found."
+            );
+
+            return false;
+        }
+
+        if (!ShopManager.Instance.IsShopOpen)
+        {
+            Debug.LogWarning(
+                "Billing failed: Shop is currently closed."
+            );
+
+            return false;
+        }
+
+        // =====================================================
         // CUSTOMER MANAGER
         // =====================================================
 
@@ -145,20 +167,6 @@ public class BillingManager : MonoBehaviour
                 $"Requested: {customer.RequestedQuantity} | " +
                 $"Collected: {customer.CollectedQuantity} | " +
                 $"Remaining: {customer.RemainingQuantity}"
-            );
-
-            return false;
-        }
-
-        // =====================================================
-        // SHOP MANAGER
-        // =====================================================
-
-        if (ShopManager.Instance == null)
-        {
-            Debug.LogError(
-                "Billing failed: " +
-                "ShopManager not found."
             );
 
             return false;

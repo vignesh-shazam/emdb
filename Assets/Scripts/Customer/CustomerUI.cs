@@ -12,71 +12,65 @@ public class CustomerUI : MonoBehaviour
     [Header("Actions")]
     [SerializeField] private Button serveCustomerButton;
 
-    // =========================
+    // =========================================================
     // ENABLE
-    // =========================
+    // =========================================================
 
     private void OnEnable()
     {
-        CustomerManager.OnCustomerListChanged +=
-            RefreshUI;
-
-        InventoryManager.OnInventoryChanged +=
-            RefreshUI;
+        CustomerManager.OnCustomerListChanged += RefreshUI;
+        InventoryManager.OnInventoryChanged += RefreshUI;
+        BillingManager.OnBillingUpdated += RefreshUI;
     }
 
-    // =========================
+    // =========================================================
     // DISABLE
-    // =========================
+    // =========================================================
 
     private void OnDisable()
     {
-        CustomerManager.OnCustomerListChanged -=
-            RefreshUI;
-
-        InventoryManager.OnInventoryChanged -=
-            RefreshUI;
+        CustomerManager.OnCustomerListChanged -= RefreshUI;
+        InventoryManager.OnInventoryChanged -= RefreshUI;
+        BillingManager.OnBillingUpdated -= RefreshUI;
     }
 
-    // =========================
+    // =========================================================
     // START
-    // =========================
+    // =========================================================
 
     private void Start()
     {
         InitializeUI();
-
         RefreshUI();
     }
 
-    // =========================
+    // =========================================================
     // UPDATE
-    // =========================
+    // =========================================================
 
     private void Update()
     {
         RefreshPatienceUI();
     }
 
-    // =========================
-    // INITIALIZE
-    // =========================
+    // =========================================================
+    // INITIALIZE UI
+    // =========================================================
 
     private void InitializeUI()
     {
-        if (serveCustomerButton != null)
+        if (serveCustomerButton == null)
         {
-            serveCustomerButton.onClick.RemoveAllListeners();
-
-            serveCustomerButton.onClick.AddListener(
-                ServeCustomer
-            );
+            return;
         }
+
+        serveCustomerButton.onClick.RemoveAllListeners();
+        serveCustomerButton.onClick.AddListener(ProcessCustomerFlow);
     }
 
-    // =========================
+    // =========================================================
     // REFRESH UI
-    // =========================
+    // =========================================================
 
     public void RefreshUI()
     {
@@ -86,19 +80,8 @@ public class CustomerUI : MonoBehaviour
             return;
         }
 
-        if (CustomerManager.Instance.CustomerCount <= 0)
-        {
-            ClearUI();
-            return;
-        }
-
-        if (CustomerManager.Instance.ActiveCustomers == null)
-        {
-            ClearUI();
-            return;
-        }
-
-        if (CustomerManager.Instance.ActiveCustomers.Count <= 0)
+        if (CustomerManager.Instance.ActiveCustomers == null ||
+            CustomerManager.Instance.ActiveCustomers.Count == 0)
         {
             ClearUI();
             return;
@@ -113,19 +96,11 @@ public class CustomerUI : MonoBehaviour
             return;
         }
 
-        // =========================
-        // CUSTOMER NAME
-        // =========================
-
         if (customerNameText != null)
         {
             customerNameText.text =
                 customer.CustomerName;
         }
-
-        // =========================
-        // CUSTOMER REQUEST
-        // =========================
 
         if (customerRequestText != null)
         {
@@ -134,24 +109,13 @@ public class CustomerUI : MonoBehaviour
                 $"{customer.RequestedQuantity}";
         }
 
-        // =========================
-        // PATIENCE
-        // =========================
-
         RefreshPatienceUI();
-
-        // =========================
-        // SERVE BUTTON
-        // =========================
-
-        UpdateServeButton(
-            customer
-        );
+        UpdateActionButton(customer);
     }
 
-    // =========================
+    // =========================================================
     // REFRESH PATIENCE
-    // =========================
+    // =========================================================
 
     private void RefreshPatienceUI()
     {
@@ -160,26 +124,11 @@ public class CustomerUI : MonoBehaviour
             return;
         }
 
-        if (CustomerManager.Instance == null)
+        if (CustomerManager.Instance == null ||
+            CustomerManager.Instance.ActiveCustomers == null ||
+            CustomerManager.Instance.ActiveCustomers.Count == 0)
         {
-            return;
-        }
-
-        if (CustomerManager.Instance.CustomerCount <= 0)
-        {
-            customerPatienceText.text =
-                "Patience: 0";
-
-            return;
-        }
-
-        if (CustomerManager.Instance.ActiveCustomers == null)
-        {
-            return;
-        }
-
-        if (CustomerManager.Instance.ActiveCustomers.Count <= 0)
-        {
+            customerPatienceText.text = "Patience: 0";
             return;
         }
 
@@ -188,6 +137,7 @@ public class CustomerUI : MonoBehaviour
 
         if (customer == null)
         {
+            customerPatienceText.text = "Patience: 0";
             return;
         }
 
@@ -195,19 +145,38 @@ public class CustomerUI : MonoBehaviour
             $"Patience: {customer.Patience:0}";
     }
 
-    // =========================
-    // SERVE BUTTON
-    // =========================
+    // =========================================================
+    // UPDATE ACTION BUTTON
+    // =========================================================
 
-    private void UpdateServeButton(
-        Customer customer)
+    private void UpdateActionButton(Customer customer)
     {
         if (serveCustomerButton == null)
         {
             return;
         }
 
-        bool canServe = false;
+        if (ShopManager.Instance == null ||
+            !ShopManager.Instance.IsShopOpen)
+        {
+            serveCustomerButton.interactable = false;
+            return;
+        }
+
+        if (BillingManager.Instance != null &&
+            BillingManager.Instance.HasBill)
+        {
+            serveCustomerButton.interactable = false;
+            return;
+        }
+
+        if (customer.HasCollectedAllItems)
+        {
+            serveCustomerButton.interactable = true;
+            return;
+        }
+
+        bool canCollectItems = false;
 
         if (InventoryManager.Instance != null)
         {
@@ -216,77 +185,56 @@ public class CustomerUI : MonoBehaviour
                     customer.RequestedItemId
                 );
 
-            canServe =
+            canCollectItems =
                 availableQuantity >=
-                customer.RequestedQuantity;
+                customer.RemainingQuantity;
         }
 
         serveCustomerButton.interactable =
-            canServe;
+            canCollectItems;
     }
 
-    // =========================
-    // CLEAR UI
-    // =========================
+    // =========================================================
+    // CUSTOMER FLOW
+    // =========================================================
 
-    private void ClearUI()
-    {
-        if (customerNameText != null)
-        {
-            customerNameText.text =
-                "No Customer";
-        }
-
-        if (customerRequestText != null)
-        {
-            customerRequestText.text =
-                "No request";
-        }
-
-        if (customerPatienceText != null)
-        {
-            customerPatienceText.text =
-                "Patience: 0";
-        }
-
-        if (serveCustomerButton != null)
-        {
-            serveCustomerButton.interactable =
-                false;
-        }
-    }
-
-    // =========================
-    // SERVE CUSTOMER
-    // =========================
-
-    private void ServeCustomer()
+    private void ProcessCustomerFlow()
     {
         if (CustomerManager.Instance == null)
         {
             Debug.LogError(
-                "Serve failed: CustomerManager not found."
+                "Customer flow failed: CustomerManager not found."
             );
 
             return;
         }
 
-        if (CustomerManager.Instance.CustomerCount <= 0)
+        if (ShopManager.Instance == null)
+        {
+            Debug.LogError(
+                "Customer flow failed: ShopManager not found."
+            );
+
+            return;
+        }
+
+        if (!ShopManager.Instance.IsShopOpen)
         {
             Debug.LogWarning(
-                "Serve failed: No active customer."
+                "Customer flow failed: Shop is currently closed."
             );
 
             return;
         }
 
-        if (CustomerManager.Instance.ActiveCustomers == null)
+        if (CustomerManager.Instance.ActiveCustomers == null ||
+            CustomerManager.Instance.ActiveCustomers.Count == 0)
         {
-            return;
-        }
+            Debug.LogWarning(
+                "Customer flow failed: No active customer."
+            );
 
-        if (CustomerManager.Instance.ActiveCustomers.Count <= 0)
-        {
+            RefreshUI();
             return;
         }
 
@@ -295,24 +243,112 @@ public class CustomerUI : MonoBehaviour
 
         if (customer == null)
         {
-            return;
-        }
-
-        bool success =
-            CustomerManager.Instance.ServeCustomer(
-                customer.CustomerId
-            );
-
-        if (!success)
-        {
             RefreshUI();
             return;
         }
 
-        RefreshUI();
+        // =====================================================
+        // STEP 1: COLLECT ITEMS
+        // =====================================================
+
+        if (!customer.HasCollectedAllItems)
+        {
+            bool collected =
+                CustomerManager.Instance.CollectCustomerItems(
+                    customer.CustomerId
+                );
+
+            if (!collected)
+            {
+                Debug.LogWarning(
+                    "Customer flow stopped: Item collection failed."
+                );
+
+                RefreshUI();
+                return;
+            }
+
+            Debug.Log(
+                $"CustomerUI: Items collected for " +
+                $"{customer.CustomerName}."
+            );
+        }
+
+        // =====================================================
+        // STEP 2: CREATE BILL
+        // =====================================================
+
+        if (BillingManager.Instance == null)
+        {
+            Debug.LogError(
+                "Customer flow failed: BillingManager not found."
+            );
+
+            return;
+        }
+
+        bool billCreated =
+            BillingManager.Instance.CreateBill(
+                customer.CustomerId
+            );
+
+        if (!billCreated)
+        {
+            Debug.LogWarning(
+                "Customer flow stopped: Bill creation failed."
+            );
+
+            RefreshUI();
+            return;
+        }
+
+        // =====================================================
+        // STEP 3: OPEN PAYMENT UI
+        // =====================================================
+
+        if (PaymentUI.Instance == null)
+        {
+            Debug.LogError(
+                "Customer flow failed: PaymentUI not found."
+            );
+
+            return;
+        }
+
+        PaymentUI.Instance.ShowPaymentPanel();
 
         Debug.Log(
-            "Customer served from UI."
+            $"CustomerUI: Payment panel opened for " +
+            $"{customer.CustomerName}."
         );
+
+        RefreshUI();
+    }
+
+    // =========================================================
+    // CLEAR UI
+    // =========================================================
+
+    private void ClearUI()
+    {
+        if (customerNameText != null)
+        {
+            customerNameText.text = "No Customer";
+        }
+
+        if (customerRequestText != null)
+        {
+            customerRequestText.text = "No request";
+        }
+
+        if (customerPatienceText != null)
+        {
+            customerPatienceText.text = "Patience: 0";
+        }
+
+        if (serveCustomerButton != null)
+        {
+            serveCustomerButton.interactable = false;
+        }
     }
 }
