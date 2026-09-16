@@ -14943,6 +14943,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f89de94635819874c8694c39df66223a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShopManager
+  isShopOpen: 1
   shopItems: []
   shopUpgradeLevel: 1
   maximumUpgradeLevel: 10
@@ -15175,15 +15176,15 @@ MonoBehaviour:
     Capacity: 10
     Quantity: 10
   - ShelfNumber: 2
-    ItemId: 
-    ItemName: 
+    ItemId: food_002
+    ItemName: Bread
     Capacity: 10
-    Quantity: 0
+    Quantity: 10
   - ShelfNumber: 3
-    ItemId: 
-    ItemName: 
+    ItemId: tool_001
+    ItemName: Tool Kit
     Capacity: 10
-    Quantity: 0
+    Quantity: 10
   - ShelfNumber: 4
     ItemId: 
     ItemName: 
@@ -18440,7 +18441,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1677274491}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: eec714c6098e2504b9f3eabe6a21569c, type: 3}
   m_Name: 

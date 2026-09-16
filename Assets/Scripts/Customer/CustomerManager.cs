@@ -466,16 +466,51 @@ public class CustomerManager : MonoBehaviour
     // DEVELOPMENT TESTS
     // =========================================================
 
-    [ContextMenu("TEST - Create Milk Customer")]
-    private void TestCreateMilkCustomer()
+    [ContextMenu("Create Milk Customer")]
+    private void CreateMilkCustomer()
     {
+        string customerId =
+            "CUS-TEST-" + System.Guid.NewGuid().ToString("N")[..6];
+
         CreateCustomer(
-            "CUS-TEST-001",
+            customerId,
             "Test Customer",
             "food_001",
             "Milk",
             3,
-            100f
+            60f
+        );
+    }
+
+    [ContextMenu("Create Bread Customer")]
+    private void CreateBreadCustomer()
+    {
+        string customerId =
+            "CUS-TEST-" + System.Guid.NewGuid().ToString("N")[..6];
+
+        CreateCustomer(
+            customerId,
+            "Test Customer",
+            "food_002",
+            "Bread",
+            3,
+            60f
+        );
+    }
+
+    [ContextMenu("CreateToolkitCustomer")]
+    private void CreateToolKitCustomer()
+    {
+        string customerId =
+            "CUS-TEST-" + System.Guid.NewGuid().ToString("N")[..6];
+
+        CreateCustomer(
+            customerId,
+            "Test Customer",
+            "tool_001",
+            "Tool Kit",
+            3,
+            60f
         );
     }
 
