@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+[DefaultExecutionOrder(-100)]
 public class ShopManager : MonoBehaviour
 {
     public static ShopManager Instance { get; private set; }
@@ -27,8 +28,7 @@ public class ShopManager : MonoBehaviour
 
     [Header("Shop Items")]
     [SerializeField]
-    private List<ShopItem> shopItems =
-        new List<ShopItem>();
+    private List<ShopItem> shopItems = new List<ShopItem>();
 
     // =========================================================
     // SHOP UPGRADE
@@ -83,30 +83,24 @@ public class ShopManager : MonoBehaviour
     // PUBLIC PROPERTIES
     // =========================================================
 
-    public bool IsShopOpen =>
-        isShopOpen;
+    public bool IsShopOpen => isShopOpen;
 
-    public IReadOnlyList<ShopItem> ShopItems =>
-        shopItems;
+    public IReadOnlyList<ShopItem> ShopItems => shopItems;
 
-    public int ShopUpgradeLevel =>
-        shopUpgradeLevel;
+    public int ShopUpgradeLevel => shopUpgradeLevel;
 
-    public int MaximumUpgradeLevel =>
-        maximumUpgradeLevel;
+    public int MaximumUpgradeLevel => maximumUpgradeLevel;
 
     public bool CanUpgradeShop =>
         shopUpgradeLevel < maximumUpgradeLevel;
 
     public float RevenueMultiplier =>
         baseRevenueMultiplier +
-        ((shopUpgradeLevel - 1) *
-        revenueIncreasePerUpgrade);
+        ((shopUpgradeLevel - 1) * revenueIncreasePerUpgrade);
 
     public float CustomerGrowthMultiplier =>
         baseCustomerGrowthMultiplier +
-        ((shopUpgradeLevel - 1) *
-        customerGrowthPerUpgrade);
+        ((shopUpgradeLevel - 1) * customerGrowthPerUpgrade);
 
     // =========================================================
     // AWAKE
@@ -114,16 +108,41 @@ public class ShopManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null &&
-            Instance != this)
+        if (Instance != null && Instance != this)
         {
+            Debug.LogWarning(
+                $"Duplicate ShopManager found and destroyed. " +
+                $"Object: {gameObject.name}"
+            );
+
             Destroy(gameObject);
             return;
         }
 
         Instance = this;
 
+        Debug.Log(
+            $"ShopManager Instance assigned successfully. " +
+            $"Object: {gameObject.name}"
+        );
+
         InitializeShop();
+    }
+
+    // =========================================================
+    // DESTROY
+    // =========================================================
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+
+            Debug.Log(
+                "ShopManager Instance cleared."
+            );
+        }
     }
 
     // =========================================================
@@ -132,6 +151,11 @@ public class ShopManager : MonoBehaviour
 
     private void InitializeShop()
     {
+        if (shopItems == null)
+        {
+            shopItems = new List<ShopItem>();
+        }
+
         if (shopUpgradeLevel < 1)
         {
             shopUpgradeLevel = 1;
@@ -142,11 +166,9 @@ public class ShopManager : MonoBehaviour
             maximumUpgradeLevel = 10;
         }
 
-        if (shopUpgradeLevel >
-            maximumUpgradeLevel)
+        if (shopUpgradeLevel > maximumUpgradeLevel)
         {
-            shopUpgradeLevel =
-                maximumUpgradeLevel;
+            shopUpgradeLevel = maximumUpgradeLevel;
         }
 
         if (baseUpgradeCost < 0)
@@ -182,9 +204,9 @@ public class ShopManager : MonoBehaviour
         // =====================================================
         // DEFAULT SHOP ITEMS
         //
-        // food_001 → Milk
-        // food_002 → Bread
-        // tool_001 → Tool Kit
+        // food_001 -> Milk
+        // food_002 -> Bread
+        // tool_001 -> Tool Kit
         // =====================================================
 
         if (shopItems.Count == 0)
@@ -274,11 +296,7 @@ public class ShopManager : MonoBehaviour
     }
 
     // =========================================================
-    // SHOP UPGRADE SYSTEM
-    // =========================================================
-
-    // =========================================================
-    // GET UPGRADE COST
+    // SHOP UPGRADE
     // =========================================================
 
     public int GetUpgradeCost()
@@ -298,30 +316,23 @@ public class ShopManager : MonoBehaviour
         return Mathf.RoundToInt(cost);
     }
 
-    // =========================================================
-    // UPGRADE SHOP
-    // =========================================================
-
     public bool UpgradeShop()
     {
         if (!CanUpgradeShop)
         {
             Debug.LogWarning(
-                "Shop upgrade failed: " +
-                "Maximum shop level reached."
+                "Shop upgrade failed: Maximum shop level reached."
             );
 
             return false;
         }
 
-        int upgradeCost =
-            GetUpgradeCost();
+        int upgradeCost = GetUpgradeCost();
 
         if (ExpenseManager.Instance == null)
         {
             Debug.LogError(
-                "Shop upgrade failed: " +
-                "ExpenseManager not found."
+                "Shop upgrade failed: ExpenseManager not found."
             );
 
             return false;
@@ -338,8 +349,7 @@ public class ShopManager : MonoBehaviour
         if (!expenseSuccessful)
         {
             Debug.LogWarning(
-                $"Shop upgrade failed: " +
-                $"Insufficient funds. " +
+                $"Shop upgrade failed: Insufficient funds. " +
                 $"Required: Rs. {upgradeCost:N0}"
             );
 
@@ -362,36 +372,20 @@ public class ShopManager : MonoBehaviour
         return true;
     }
 
-    // =========================================================
-    // GET SHOP LEVEL
-    // =========================================================
-
     public int GetShopLevel()
     {
         return shopUpgradeLevel;
     }
-
-    // =========================================================
-    // GET NEXT UPGRADE COST
-    // =========================================================
 
     public int GetNextUpgradeCost()
     {
         return GetUpgradeCost();
     }
 
-    // =========================================================
-    // GET REVENUE MULTIPLIER
-    // =========================================================
-
     public float GetRevenueMultiplier()
     {
         return RevenueMultiplier;
     }
-
-    // =========================================================
-    // GET CUSTOMER GROWTH
-    // =========================================================
 
     public float GetCustomerGrowthMultiplier()
     {
@@ -399,15 +393,10 @@ public class ShopManager : MonoBehaviour
     }
 
     // =========================================================
-    // SHOP ITEMS
+    // GET SHOP ITEM
     // =========================================================
 
-    // =========================================================
-    // GET ITEM
-    // =========================================================
-
-    public ShopItem GetItem(
-        string itemId)
+    public ShopItem GetItem(string itemId)
     {
         if (string.IsNullOrWhiteSpace(itemId))
         {
@@ -434,8 +423,7 @@ public class ShopManager : MonoBehaviour
     // BUY ITEM
     // =========================================================
 
-    public bool BuyItem(
-        string itemId)
+    public bool BuyItem(string itemId)
     {
         if (!IsShopOpen)
         {
@@ -446,14 +434,12 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        ShopItem item =
-            GetItem(itemId);
+        ShopItem item = GetItem(itemId);
 
         if (item == null)
         {
             Debug.LogWarning(
-                $"Buy failed: Item not found. " +
-                $"ID: {itemId}"
+                $"Buy failed: Item not found. ID: {itemId}"
             );
 
             return false;
@@ -477,12 +463,7 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // =====================================================
-        // CHECK CURRENT CUSTOMER
-        // =====================================================
-
-        Customer currentCustomer =
-            GetCurrentCustomer();
+        Customer currentCustomer = GetCurrentCustomer();
 
         if (currentCustomer == null)
         {
@@ -493,12 +474,7 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // =====================================================
-        // ONLY REQUESTED ITEM
-        // =====================================================
-
-        if (currentCustomer.RequestedItemId !=
-            itemId)
+        if (currentCustomer.RequestedItemId != itemId)
         {
             Debug.LogWarning(
                 $"Buy failed: Current customer wants " +
@@ -509,17 +485,10 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // =====================================================
-        // CHECK REQUIRED QUANTITY
-        // =====================================================
-
         int inventoryQuantity =
-            InventoryManager.Instance.GetQuantity(
-                itemId
-            );
+            InventoryManager.Instance.GetQuantity(itemId);
 
-        if (inventoryQuantity >=
-            currentCustomer.RequestedQuantity)
+        if (inventoryQuantity >= currentCustomer.RequestedQuantity)
         {
             Debug.LogWarning(
                 $"Buy failed: Required quantity reached. " +
@@ -531,12 +500,7 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // =====================================================
-        // CHECK MONEY
-        // =====================================================
-
-        if (!MoneyManager.Instance.CanAfford(
-                item.BuyPrice))
+        if (!MoneyManager.Instance.CanAfford(item.BuyPrice))
         {
             Debug.LogWarning(
                 $"Buy failed: Insufficient money. " +
@@ -547,14 +511,8 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // =====================================================
-        // REMOVE MONEY
-        // =====================================================
-
         bool moneyRemoved =
-            MoneyManager.Instance.RemoveMoney(
-                item.BuyPrice
-            );
+            MoneyManager.Instance.RemoveMoney(item.BuyPrice);
 
         if (!moneyRemoved)
         {
@@ -566,10 +524,6 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // =====================================================
-        // ADD INVENTORY
-        // =====================================================
-
         bool inventoryAdded =
             InventoryManager.Instance.AddItem(
                 item.ItemId,
@@ -579,9 +533,7 @@ public class ShopManager : MonoBehaviour
 
         if (!inventoryAdded)
         {
-            MoneyManager.Instance.AddMoney(
-                item.BuyPrice
-            );
+            MoneyManager.Instance.AddMoney(item.BuyPrice);
 
             Debug.LogWarning(
                 $"Buy failed: Could not add " +
@@ -591,29 +543,9 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // =====================================================
-        // RECORD SHOP PURCHASE
-        // =====================================================
-
-        RecordShopPurchase(
-            item
-        );
-
-        // =====================================================
-        // TRACK TOTAL OWNERSHIP
-        // =====================================================
-
-        AddPurchasedItem(
-            item.ItemId
-        );
-
-        // =====================================================
-        // TRACK CURRENT CUSTOMER
-        // =====================================================
-
-        AddCurrentCustomerPurchase(
-            item.ItemId
-        );
+        RecordShopPurchase(item);
+        AddPurchasedItem(item.ItemId);
+        AddCurrentCustomerPurchase(item.ItemId);
 
         Debug.Log(
             $"Purchase successful | " +
@@ -632,8 +564,7 @@ public class ShopManager : MonoBehaviour
     // RECORD SHOP PURCHASE
     // =========================================================
 
-    private void RecordShopPurchase(
-        ShopItem item)
+    private void RecordShopPurchase(ShopItem item)
     {
         if (item == null)
         {
@@ -643,8 +574,7 @@ public class ShopManager : MonoBehaviour
         if (FinanceTransactionManager.Instance == null)
         {
             Debug.LogWarning(
-                "ShopManager: " +
-                "FinanceTransactionManager not found. " +
+                "ShopManager: FinanceTransactionManager not found. " +
                 "Shop purchase ledger entry skipped."
             );
 
@@ -668,17 +598,14 @@ public class ShopManager : MonoBehaviour
     // SELL / UNDO CURRENT BUY
     // =========================================================
 
-    public bool SellItem(
-        string itemId)
+    public bool SellItem(string itemId)
     {
-        ShopItem item =
-            GetItem(itemId);
+        ShopItem item = GetItem(itemId);
 
         if (item == null)
         {
             Debug.LogWarning(
-                $"Sell failed: Item not found. " +
-                $"ID: {itemId}"
+                $"Sell failed: Item not found. ID: {itemId}"
             );
 
             return false;
@@ -702,28 +629,18 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // =====================================================
-        // ONLY UNDO CURRENT CUSTOMER BUY
-        // =====================================================
-
         int customerPurchaseQuantity =
-            GetCurrentCustomerPurchaseQuantity(
-                itemId
-            );
+            GetCurrentCustomerPurchaseQuantity(itemId);
 
         if (customerPurchaseQuantity <= 0)
         {
             Debug.LogWarning(
-                $"Sell failed: No current customer " +
-                $"purchase to undo. Item: {item.ItemName}"
+                $"Sell failed: No current customer purchase " +
+                $"to undo. Item: {item.ItemName}"
             );
 
             return false;
         }
-
-        // =====================================================
-        // REMOVE FROM INVENTORY
-        // =====================================================
 
         bool inventoryRemoved =
             InventoryManager.Instance.RemoveItem(
@@ -741,29 +658,10 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // =====================================================
-        // RETURN MONEY
-        // =====================================================
+        MoneyManager.Instance.AddMoney(item.BuyPrice);
 
-        MoneyManager.Instance.AddMoney(
-            item.BuyPrice
-        );
-
-        // =====================================================
-        // REMOVE OWNERSHIP
-        // =====================================================
-
-        RemovePurchasedItem(
-            item.ItemId
-        );
-
-        // =====================================================
-        // REMOVE CUSTOMER PURCHASE
-        // =====================================================
-
-        RemoveCurrentCustomerPurchase(
-            item.ItemId
-        );
+        RemovePurchasedItem(item.ItemId);
+        RemoveCurrentCustomerPurchase(item.ItemId);
 
         Debug.Log(
             $"Customer purchase undone | " +
@@ -775,10 +673,6 @@ public class ShopManager : MonoBehaviour
 
         return true;
     }
-
-    // =========================================================
-    // CUSTOMER PURCHASE
-    // =========================================================
 
     // =========================================================
     // COMPLETE CUSTOMER PURCHASE
@@ -815,19 +709,15 @@ public class ShopManager : MonoBehaviour
             KeyValuePair<string, int> purchase
             in currentCustomerPurchases)
         {
-            string itemId =
-                purchase.Key;
-
-            int quantity =
-                purchase.Value;
+            string itemId = purchase.Key;
+            int quantity = purchase.Value;
 
             if (quantity <= 0)
             {
                 continue;
             }
 
-            ShopItem item =
-                GetItem(itemId);
+            ShopItem item = GetItem(itemId);
 
             if (item == null)
             {
@@ -842,13 +732,9 @@ public class ShopManager : MonoBehaviour
 
             if (removed)
             {
-                int refund =
-                    item.BuyPrice *
-                    quantity;
+                int refund = item.BuyPrice * quantity;
 
-                MoneyManager.Instance.AddMoney(
-                    refund
-                );
+                MoneyManager.Instance.AddMoney(refund);
 
                 Debug.Log(
                     $"Expired customer purchase cancelled | " +
@@ -857,10 +743,7 @@ public class ShopManager : MonoBehaviour
                     $"Refund: Rs. {refund:N0}"
                 );
 
-                RemovePurchasedItem(
-                    itemId,
-                    quantity
-                );
+                RemovePurchasedItem(itemId, quantity);
             }
         }
 
@@ -875,21 +758,14 @@ public class ShopManager : MonoBehaviour
     // PURCHASE QUANTITIES
     // =========================================================
 
-    // =========================================================
-    // TOTAL PURCHASED QUANTITY
-    // =========================================================
-
-    public int GetPurchasedQuantity(
-        string itemId)
+    public int GetPurchasedQuantity(string itemId)
     {
         if (string.IsNullOrWhiteSpace(itemId))
         {
             return 0;
         }
 
-        if (purchasedItems.TryGetValue(
-                itemId,
-                out int quantity))
+        if (purchasedItems.TryGetValue(itemId, out int quantity))
         {
             return quantity;
         }
@@ -897,12 +773,7 @@ public class ShopManager : MonoBehaviour
         return 0;
     }
 
-    // =========================================================
-    // CURRENT CUSTOMER QUANTITY
-    // =========================================================
-
-    public int GetCurrentCustomerPurchaseQuantity(
-        string itemId)
+    public int GetCurrentCustomerPurchaseQuantity(string itemId)
     {
         if (string.IsNullOrWhiteSpace(itemId))
         {
@@ -920,83 +791,77 @@ public class ShopManager : MonoBehaviour
     }
 
     // =========================================================
-    // PURCHASE TRACKING
+    // TOTAL PURCHASE TRACKING
     // =========================================================
 
-    // =========================================================
-    // ADD TOTAL PURCHASE
-    // =========================================================
-
-    private void AddPurchasedItem(
-        string itemId)
+    private void AddPurchasedItem(string itemId)
     {
+        if (string.IsNullOrWhiteSpace(itemId))
+        {
+            return;
+        }
+
         if (purchasedItems.ContainsKey(itemId))
         {
             purchasedItems[itemId]++;
         }
         else
         {
-            purchasedItems.Add(
-                itemId,
-                1
-            );
+            purchasedItems.Add(itemId, 1);
         }
     }
-
-    // =========================================================
-    // REMOVE TOTAL PURCHASE
-    // =========================================================
 
     private void RemovePurchasedItem(
         string itemId,
         int quantity = 1)
     {
+        if (string.IsNullOrWhiteSpace(itemId))
+        {
+            return;
+        }
+
         if (!purchasedItems.ContainsKey(itemId))
         {
             return;
         }
 
-        purchasedItems[itemId] -=
-            quantity;
+        purchasedItems[itemId] -= quantity;
 
         if (purchasedItems[itemId] <= 0)
         {
-            purchasedItems.Remove(
-                itemId
-            );
+            purchasedItems.Remove(itemId);
         }
     }
 
     // =========================================================
-    // ADD CURRENT CUSTOMER BUY
+    // CURRENT CUSTOMER PURCHASE TRACKING
     // =========================================================
 
-    private void AddCurrentCustomerPurchase(
-        string itemId)
+    private void AddCurrentCustomerPurchase(string itemId)
     {
-        if (currentCustomerPurchases.ContainsKey(
-                itemId))
+        if (string.IsNullOrWhiteSpace(itemId))
+        {
+            return;
+        }
+
+        if (currentCustomerPurchases.ContainsKey(itemId))
         {
             currentCustomerPurchases[itemId]++;
         }
         else
         {
-            currentCustomerPurchases.Add(
-                itemId,
-                1
-            );
+            currentCustomerPurchases.Add(itemId, 1);
         }
     }
 
-    // =========================================================
-    // REMOVE CURRENT CUSTOMER BUY
-    // =========================================================
-
-    private void RemoveCurrentCustomerPurchase(
-        string itemId)
+    private void RemoveCurrentCustomerPurchase(string itemId)
     {
-        if (!currentCustomerPurchases.ContainsKey(
-                itemId))
+        if (string.IsNullOrWhiteSpace(itemId))
+        {
+            return;
+        }
+
+        if (!currentCustomerPurchases.ContainsKey(itemId))
         {
             return;
         }
@@ -1005,9 +870,7 @@ public class ShopManager : MonoBehaviour
 
         if (currentCustomerPurchases[itemId] <= 0)
         {
-            currentCustomerPurchases.Remove(
-                itemId
-            );
+            currentCustomerPurchases.Remove(itemId);
         }
     }
 
@@ -1022,11 +885,6 @@ public class ShopManager : MonoBehaviour
             return null;
         }
 
-        if (CustomerManager.Instance.CustomerCount <= 0)
-        {
-            return null;
-        }
-
         if (CustomerManager.Instance.ActiveCustomers == null)
         {
             return null;
@@ -1037,8 +895,7 @@ public class ShopManager : MonoBehaviour
             return null;
         }
 
-        return
-            CustomerManager.Instance.ActiveCustomers[0];
+        return CustomerManager.Instance.ActiveCustomers[0];
     }
 
     // =========================================================
@@ -1055,5 +912,25 @@ public class ShopManager : MonoBehaviour
     private void TestCloseShop()
     {
         CloseShop();
+    }
+
+    [ContextMenu("TEST - Verify ShopManager Instance")]
+    private void TestVerifyShopManagerInstance()
+    {
+        if (Instance == null)
+        {
+            Debug.LogError(
+                "ShopManager TEST FAILED: Instance is NULL."
+            );
+
+            return;
+        }
+
+        Debug.Log(
+            $"ShopManager TEST PASSED | " +
+            $"Object: {Instance.gameObject.name} | " +
+            $"Shop Open: {Instance.IsShopOpen} | " +
+            $"Items: {Instance.ShopItems.Count}"
+        );
     }
 }

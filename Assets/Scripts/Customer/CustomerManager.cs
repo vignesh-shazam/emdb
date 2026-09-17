@@ -17,7 +17,9 @@ public class CustomerManager : MonoBehaviour
         activeCustomers;
 
     public int CustomerCount =>
-        activeCustomers.Count;
+        activeCustomers != null
+            ? activeCustomers.Count
+            : 0;
 
     // =========================================================
     // AWAKE
@@ -56,6 +58,102 @@ public class CustomerManager : MonoBehaviour
     }
 
     // =========================================================
+    // GET CURRENT CUSTOMER
+    // =========================================================
+
+    /// <summary>
+    /// Returns the first customer in the queue.
+    /// The first customer is the current customer.
+    /// </summary>
+    public Customer GetCurrentCustomer()
+    {
+        RemoveNullCustomers();
+
+        if (activeCustomers.Count == 0)
+        {
+            return null;
+        }
+
+        return activeCustomers[0];
+    }
+
+    // =========================================================
+    // GET CUSTOMER BY QUEUE POSITION
+    // =========================================================
+
+    /// <summary>
+    /// Queue position starts from 1.
+    /// Position 1 is the current customer.
+    /// </summary>
+    public Customer GetCustomerAtQueuePosition(
+        int queuePosition)
+    {
+        RemoveNullCustomers();
+
+        if (queuePosition <= 0)
+        {
+            Debug.LogWarning(
+                "Get customer failed: " +
+                "Queue position must start from 1."
+            );
+
+            return null;
+        }
+
+        int index =
+            queuePosition - 1;
+
+        if (index >= activeCustomers.Count)
+        {
+            Debug.LogWarning(
+                $"Get customer failed: " +
+                $"Queue position {queuePosition} does not exist."
+            );
+
+            return null;
+        }
+
+        return activeCustomers[index];
+    }
+
+    // =========================================================
+    // GET QUEUE POSITION
+    // =========================================================
+
+    /// <summary>
+    /// Returns the customer's queue position.
+    /// Returns -1 when the customer is not in the queue.
+    /// </summary>
+    public int GetQueuePosition(
+        string customerId)
+    {
+        if (string.IsNullOrWhiteSpace(customerId))
+        {
+            return -1;
+        }
+
+        RemoveNullCustomers();
+
+        for (int i = 0; i < activeCustomers.Count; i++)
+        {
+            Customer customer =
+                activeCustomers[i];
+
+            if (customer == null)
+            {
+                continue;
+            }
+
+            if (customer.CustomerId == customerId)
+            {
+                return i + 1;
+            }
+        }
+
+        return -1;
+    }
+
+    // =========================================================
     // GET CUSTOMER
     // =========================================================
 
@@ -66,6 +164,8 @@ public class CustomerManager : MonoBehaviour
         {
             return null;
         }
+
+        RemoveNullCustomers();
 
         foreach (Customer customer in activeCustomers)
         {
@@ -121,9 +221,15 @@ public class CustomerManager : MonoBehaviour
 
         activeCustomers.Add(customer);
 
+        int queuePosition =
+            activeCustomers.Count;
+
         Debug.Log(
             $"Customer added | " +
+            $"Queue Position: {queuePosition} | " +
             $"Name: {customer.CustomerName} | " +
+            $"Item: {customer.RequestedItemName} x" +
+            $"{customer.RequestedQuantity} | " +
             $"ID: {customer.CustomerId}"
         );
 
@@ -153,7 +259,6 @@ public class CustomerManager : MonoBehaviour
 
         if (customer == null)
         {
-            // Another system may have already removed this customer.
             Debug.Log(
                 $"Remove customer skipped: " +
                 $"Customer already removed or no longer active. " +
@@ -183,6 +288,8 @@ public class CustomerManager : MonoBehaviour
             $"ID: {customer.CustomerId} | " +
             $"Result: {customer.Result}"
         );
+
+        LogCurrentCustomer();
 
         OnCustomerListChanged?.Invoke();
 
@@ -301,6 +408,8 @@ public class CustomerManager : MonoBehaviour
             $"Customer: {customer.CustomerName} | " +
             $"Request: {customer.RequestedItemName} x" +
             $"{customer.RequestedQuantity} | " +
+            $"Queue Position: " +
+            $"{GetQueuePosition(customer.CustomerId)} | " +
             $"Result: {customer.Result}"
         );
 
@@ -340,6 +449,30 @@ public class CustomerManager : MonoBehaviour
             Debug.LogWarning(
                 $"Collection failed: Customer not found. " +
                 $"ID: {customerId}"
+            );
+
+            return false;
+        }
+
+        Customer currentCustomer =
+            GetCurrentCustomer();
+
+        if (currentCustomer == null)
+        {
+            Debug.LogWarning(
+                "Collection failed: No current customer."
+            );
+
+            return false;
+        }
+
+        if (currentCustomer.CustomerId != customer.CustomerId)
+        {
+            Debug.LogWarning(
+                $"Collection failed: Only the current customer " +
+                $"can collect items. " +
+                $"Current Customer: {currentCustomer.CustomerName} | " +
+                $"Requested Customer: {customer.CustomerName}"
             );
 
             return false;
@@ -388,6 +521,7 @@ public class CustomerManager : MonoBehaviour
             Debug.LogWarning(
                 $"Collection failed: Not enough rack stock. " +
                 $"Item: {customer.RequestedItemName} | " +
+                $"Item ID: {customer.RequestedItemId} | " +
                 $"Required: {remainingQuantity} | " +
                 $"Rack Available: {rackQuantity}"
             );
@@ -428,6 +562,8 @@ public class CustomerManager : MonoBehaviour
 
         Debug.Log(
             $"CUSTOMER ITEMS COLLECTED | " +
+            $"Queue Position: " +
+            $"{GetQueuePosition(customer.CustomerId)} | " +
             $"Customer: {customer.CustomerName} | " +
             $"Item: {customer.RequestedItemName} | " +
             $"Quantity: {remainingQuantity} | " +
@@ -440,6 +576,63 @@ public class CustomerManager : MonoBehaviour
         OnCustomerListChanged?.Invoke();
 
         return true;
+    }
+
+    // =========================================================
+    // LOG CURRENT CUSTOMER
+    // =========================================================
+
+    private void LogCurrentCustomer()
+    {
+        Customer currentCustomer =
+            GetCurrentCustomer();
+
+        if (currentCustomer == null)
+        {
+            Debug.Log(
+                "Queue status: No active customers. Queue is empty."
+            );
+
+            return;
+        }
+
+        Debug.Log(
+            $"New current customer | " +
+            $"Name: {currentCustomer.CustomerName} | " +
+            $"Item: {currentCustomer.RequestedItemName} x" +
+            $"{currentCustomer.RequestedQuantity} | " +
+            $"Queue Count: {activeCustomers.Count}"
+        );
+    }
+
+    // =========================================================
+    // REMOVE NULL CUSTOMERS
+    // =========================================================
+
+    private void RemoveNullCustomers()
+    {
+        if (activeCustomers == null)
+        {
+            activeCustomers =
+                new List<Customer>();
+
+            return;
+        }
+
+        int removedCount =
+            activeCustomers.RemoveAll(
+                customer => customer == null
+            );
+
+        if (removedCount > 0)
+        {
+            Debug.LogWarning(
+                $"Removed {removedCount} null customer(s) " +
+                $"from the active queue."
+            );
+
+            OnCustomerListChanged?.Invoke();
+        }
     }
 
     // =========================================================
@@ -470,7 +663,8 @@ public class CustomerManager : MonoBehaviour
     private void CreateMilkCustomer()
     {
         string customerId =
-            "CUS-TEST-" + System.Guid.NewGuid().ToString("N")[..6];
+            "CUS-TEST-" +
+            Guid.NewGuid().ToString("N")[..6];
 
         CreateCustomer(
             customerId,
@@ -486,7 +680,8 @@ public class CustomerManager : MonoBehaviour
     private void CreateBreadCustomer()
     {
         string customerId =
-            "CUS-TEST-" + System.Guid.NewGuid().ToString("N")[..6];
+            "CUS-TEST-" +
+            Guid.NewGuid().ToString("N")[..6];
 
         CreateCustomer(
             customerId,
@@ -498,11 +693,12 @@ public class CustomerManager : MonoBehaviour
         );
     }
 
-    [ContextMenu("CreateToolkitCustomer")]
+    [ContextMenu("Create Tool Kit Customer")]
     private void CreateToolKitCustomer()
     {
         string customerId =
-            "CUS-TEST-" + System.Guid.NewGuid().ToString("N")[..6];
+            "CUS-TEST-" +
+            Guid.NewGuid().ToString("N")[..6];
 
         CreateCustomer(
             customerId,
@@ -514,39 +710,47 @@ public class CustomerManager : MonoBehaviour
         );
     }
 
+    // =========================================================
+    // TEST - COLLECT CURRENT CUSTOMER ITEMS
+    // =========================================================
+
     [ContextMenu("TEST - Collect Current Customer Items")]
     private void TestCollectCurrentCustomerItems()
     {
-        if (activeCustomers == null ||
-            activeCustomers.Count == 0)
+        Customer currentCustomer =
+            GetCurrentCustomer();
+
+        if (currentCustomer == null)
         {
             Debug.LogWarning(
-                "Customer Test: No active customer."
+                "Customer Test: No active current customer."
             );
 
             return;
         }
 
-        Customer customer =
-            activeCustomers[0];
+        Debug.Log(
+            $"Testing collection for current customer | " +
+            $"Name: {currentCustomer.CustomerName} | " +
+            $"Item: {currentCustomer.RequestedItemName} | " +
+            $"Queue Position: 1"
+        );
 
-        if (customer == null)
-        {
-            Debug.LogWarning(
-                "Customer Test: Current customer is null."
-            );
-
-            return;
-        }
-
-        CollectCustomerItems(customer.CustomerId);
+        CollectCustomerItems(
+            currentCustomer.CustomerId
+        );
     }
+
+    // =========================================================
+    // TEST - SHOW CUSTOMER DETAILS
+    // =========================================================
 
     [ContextMenu("TEST - Show Customer")]
     private void TestShowCustomer()
     {
-        if (activeCustomers == null ||
-            activeCustomers.Count == 0)
+        RemoveNullCustomers();
+
+        if (activeCustomers.Count == 0)
         {
             Debug.Log(
                 "Customer Test: No active customers."
@@ -555,8 +759,11 @@ public class CustomerManager : MonoBehaviour
             return;
         }
 
-        foreach (Customer customer in activeCustomers)
+        for (int i = 0; i < activeCustomers.Count; i++)
         {
+            Customer customer =
+                activeCustomers[i];
+
             if (customer == null)
             {
                 continue;
@@ -564,14 +771,116 @@ public class CustomerManager : MonoBehaviour
 
             Debug.Log(
                 $"Customer | " +
+                $"Queue Position: {i + 1} | " +
                 $"Name: {customer.CustomerName} | " +
+                $"ID: {customer.CustomerId} | " +
+                $"Item ID: {customer.RequestedItemId} | " +
                 $"Request: {customer.RequestedItemName} x" +
                 $"{customer.RequestedQuantity} | " +
                 $"Collected: {customer.CollectedQuantity} | " +
-                $"Remaining: {customer.RemainingQuantity}"
+                $"Remaining: {customer.RemainingQuantity} | " +
+                $"Result: {customer.Result}"
             );
         }
     }
+
+    // =========================================================
+    // TEST - DEBUG CUSTOMER QUEUE
+    // =========================================================
+
+    [ContextMenu("TEST - Debug Customer Queue")]
+    private void DebugCustomerQueue()
+    {
+        RemoveNullCustomers();
+
+        Debug.Log(
+            "========== CUSTOMER QUEUE =========="
+        );
+
+        if (activeCustomers.Count == 0)
+        {
+            Debug.Log(
+                "Queue is empty."
+            );
+
+            Debug.Log(
+                "===================================="
+            );
+
+            return;
+        }
+
+        for (int i = 0; i < activeCustomers.Count; i++)
+        {
+            Customer customer =
+                activeCustomers[i];
+
+            if (customer == null)
+            {
+                continue;
+            }
+
+            string customerStatus =
+                i == 0
+                    ? "CURRENT CUSTOMER"
+                    : "WAITING CUSTOMER";
+
+            Debug.Log(
+                $"Position {i + 1} | " +
+                $"{customerStatus} | " +
+                $"Name: {customer.CustomerName} | " +
+                $"ID: {customer.CustomerId} | " +
+                $"Item: {customer.RequestedItemName} | " +
+                $"Item ID: {customer.RequestedItemId} | " +
+                $"Requested: {customer.RequestedQuantity} | " +
+                $"Collected: {customer.CollectedQuantity} | " +
+                $"Remaining: {customer.RemainingQuantity} | " +
+                $"Result: {customer.Result}"
+            );
+        }
+
+        Debug.Log(
+            $"Total Queue Customers: {activeCustomers.Count}"
+        );
+
+        Debug.Log(
+            "===================================="
+        );
+    }
+
+    // =========================================================
+    // TEST - SHOW CURRENT CUSTOMER
+    // =========================================================
+
+    [ContextMenu("TEST - Show Current Customer")]
+    private void TestShowCurrentCustomer()
+    {
+        Customer currentCustomer =
+            GetCurrentCustomer();
+
+        if (currentCustomer == null)
+        {
+            Debug.Log(
+                "Current customer: None. Queue is empty."
+            );
+
+            return;
+        }
+
+        Debug.Log(
+            $"Current customer | " +
+            $"Position: 1 | " +
+            $"Name: {currentCustomer.CustomerName} | " +
+            $"Item: {currentCustomer.RequestedItemName} x" +
+            $"{currentCustomer.RequestedQuantity} | " +
+            $"Collected: {currentCustomer.CollectedQuantity} | " +
+            $"Remaining: {currentCustomer.RemainingQuantity}"
+        );
+    }
+
+    // =========================================================
+    // TEST - CLEAR CUSTOMERS
+    // =========================================================
 
     [ContextMenu("TEST - Clear Customers")]
     private void TestClearCustomers()

@@ -6,22 +6,36 @@ public class PaymentUI : MonoBehaviour
 {
     public static PaymentUI Instance { get; private set; }
 
-    [Header("Panel")]
-    [SerializeField] private GameObject paymentPanel;
+    [Header("Panel Reference")]
+    [SerializeField]
+    private GameObject paymentPanel;
 
     [Header("Text References")]
-    [SerializeField] private TMP_Text titleText;
-    [SerializeField] private TMP_Text amountText;
-    [SerializeField] private TMP_Text paymentMethodText;
+    [SerializeField]
+    private TMP_Text titleText;
+
+    [SerializeField]
+    private TMP_Text amountText;
+
+    [SerializeField]
+    private TMP_Text paymentMethodText;
 
     [Header("Payment Method Buttons")]
-    [SerializeField] private Button cashButton;
-    [SerializeField] private Button cardButton;
-    [SerializeField] private Button upiButton;
+    [SerializeField]
+    private Button cashButton;
+
+    [SerializeField]
+    private Button cardButton;
+
+    [SerializeField]
+    private Button upiButton;
 
     [Header("Action Buttons")]
-    [SerializeField] private Button confirmButton;
-    [SerializeField] private Button cancelButton;
+    [SerializeField]
+    private Button confirmButton;
+
+    [SerializeField]
+    private Button cancelButton;
 
     private PaymentManager.PaymentMethod selectedPaymentMethod =
         PaymentManager.PaymentMethod.None;
@@ -42,6 +56,26 @@ public class PaymentUI : MonoBehaviour
         }
 
         Instance = this;
+
+        Debug.Log("PaymentUI initialized.");
+    }
+
+    // =========================================================
+    // START
+    // =========================================================
+
+    private void Start()
+    {
+        ValidateReferences();
+
+        RefreshUI();
+
+        Debug.Log(
+            $"PaymentUI startup completed | " +
+            $"Panel Assigned: {paymentPanel != null} | " +
+            $"ShopManager Found: {ShopManager.Instance != null} | " +
+            $"BillingManager Found: {BillingManager.Instance != null}"
+        );
     }
 
     // =========================================================
@@ -52,30 +86,7 @@ public class PaymentUI : MonoBehaviour
     {
         BillingManager.OnBillingUpdated += RefreshUI;
 
-        if (cashButton != null)
-        {
-            cashButton.onClick.AddListener(SelectCash);
-        }
-
-        if (cardButton != null)
-        {
-            cardButton.onClick.AddListener(SelectCard);
-        }
-
-        if (upiButton != null)
-        {
-            upiButton.onClick.AddListener(SelectUPI);
-        }
-
-        if (confirmButton != null)
-        {
-            confirmButton.onClick.AddListener(ConfirmPayment);
-        }
-
-        if (cancelButton != null)
-        {
-            cancelButton.onClick.AddListener(ClosePanel);
-        }
+        RegisterButtonListeners();
 
         RefreshUI();
     }
@@ -88,6 +99,122 @@ public class PaymentUI : MonoBehaviour
     {
         BillingManager.OnBillingUpdated -= RefreshUI;
 
+        RemoveButtonListeners();
+    }
+
+    // =========================================================
+    // VALIDATE REFERENCES
+    // =========================================================
+
+    private void ValidateReferences()
+    {
+        if (paymentPanel == null)
+        {
+            Debug.LogError(
+                "PaymentUI setup error: Payment Panel is not assigned."
+            );
+        }
+
+        if (titleText == null)
+        {
+            Debug.LogWarning(
+                "PaymentUI setup warning: Title Text is not assigned."
+            );
+        }
+
+        if (amountText == null)
+        {
+            Debug.LogWarning(
+                "PaymentUI setup warning: Amount Text is not assigned."
+            );
+        }
+
+        if (paymentMethodText == null)
+        {
+            Debug.LogWarning(
+                "PaymentUI setup warning: Payment Method Text is not assigned."
+            );
+        }
+
+        if (cashButton == null)
+        {
+            Debug.LogWarning(
+                "PaymentUI setup warning: Cash Button is not assigned."
+            );
+        }
+
+        if (cardButton == null)
+        {
+            Debug.LogWarning(
+                "PaymentUI setup warning: Card Button is not assigned."
+            );
+        }
+
+        if (upiButton == null)
+        {
+            Debug.LogWarning(
+                "PaymentUI setup warning: UPI Button is not assigned."
+            );
+        }
+
+        if (confirmButton == null)
+        {
+            Debug.LogWarning(
+                "PaymentUI setup warning: Confirm Button is not assigned."
+            );
+        }
+
+        if (cancelButton == null)
+        {
+            Debug.LogWarning(
+                "PaymentUI setup warning: Cancel Button is not assigned."
+            );
+        }
+    }
+
+    // =========================================================
+    // REGISTER BUTTON LISTENERS
+    // =========================================================
+
+    private void RegisterButtonListeners()
+    {
+        if (cashButton != null)
+        {
+            cashButton.onClick.RemoveListener(SelectCash);
+            cashButton.onClick.AddListener(SelectCash);
+        }
+
+        if (cardButton != null)
+        {
+            cardButton.onClick.RemoveListener(SelectCard);
+            cardButton.onClick.AddListener(SelectCard);
+        }
+
+        if (upiButton != null)
+        {
+            upiButton.onClick.RemoveListener(SelectUPI);
+            upiButton.onClick.AddListener(SelectUPI);
+        }
+
+        if (confirmButton != null)
+        {
+            confirmButton.onClick.RemoveListener(ConfirmPayment);
+            confirmButton.onClick.AddListener(ConfirmPayment);
+        }
+
+        if (cancelButton != null)
+        {
+            cancelButton.onClick.RemoveListener(ClosePanel);
+            cancelButton.onClick.AddListener(ClosePanel);
+        }
+    }
+
+    // =========================================================
+    // REMOVE BUTTON LISTENERS
+    // =========================================================
+
+    private void RemoveButtonListeners()
+    {
         if (cashButton != null)
         {
             cashButton.onClick.RemoveListener(SelectCash);
@@ -123,7 +250,7 @@ public class PaymentUI : MonoBehaviour
         if (ShopManager.Instance == null)
         {
             Debug.LogError(
-                "PaymentUI failed: ShopManager not found."
+                "PaymentUI failed: ShopManager.Instance is NULL."
             );
 
             return false;
@@ -138,7 +265,27 @@ public class PaymentUI : MonoBehaviour
 
     public void ShowPaymentPanel()
     {
-        if (!IsShopOpen())
+        Debug.Log("PaymentUI: ShowPaymentPanel() called.");
+
+        if (paymentPanel == null)
+        {
+            Debug.LogError(
+                "PaymentUI failed: Payment Panel reference is not assigned."
+            );
+
+            return;
+        }
+
+        if (ShopManager.Instance == null)
+        {
+            Debug.LogError(
+                "PaymentUI failed: ShopManager.Instance is NULL."
+            );
+
+            return;
+        }
+
+        if (!ShopManager.Instance.IsShopOpen)
         {
             Debug.LogWarning(
                 "PaymentUI failed: Shop is currently closed."
@@ -150,7 +297,7 @@ public class PaymentUI : MonoBehaviour
         if (BillingManager.Instance == null)
         {
             Debug.LogError(
-                "PaymentUI failed: BillingManager not found."
+                "PaymentUI failed: BillingManager.Instance is NULL."
             );
 
             return;
@@ -159,7 +306,7 @@ public class PaymentUI : MonoBehaviour
         if (!BillingManager.Instance.HasBill)
         {
             Debug.LogWarning(
-                "PaymentUI failed: No active bill available."
+                "PaymentUI failed: No active bill is available."
             );
 
             return;
@@ -168,12 +315,14 @@ public class PaymentUI : MonoBehaviour
         selectedPaymentMethod =
             PaymentManager.PaymentMethod.None;
 
-        if (paymentPanel != null)
-        {
-            paymentPanel.SetActive(true);
-        }
+        paymentPanel.SetActive(true);
 
         RefreshUI();
+
+        Debug.Log(
+            $"Payment panel opened successfully | " +
+            $"Amount: ₹{BillingManager.Instance.CurrentTotalAmount:N0}"
+        );
     }
 
     // =========================================================
@@ -182,14 +331,30 @@ public class PaymentUI : MonoBehaviour
 
     public void RefreshUI()
     {
-        bool shopIsOpen = IsShopOpen();
-
         if (titleText != null)
         {
             titleText.text = "PAYMENT";
         }
 
-        if (!shopIsOpen)
+        if (ShopManager.Instance == null)
+        {
+            SetPaymentButtonsInteractable(false);
+
+            if (amountText != null)
+            {
+                amountText.text = "Shop unavailable.";
+            }
+
+            if (paymentMethodText != null)
+            {
+                paymentMethodText.text =
+                    "Payment Method: Not Available";
+            }
+
+            return;
+        }
+
+        if (!ShopManager.Instance.IsShopOpen)
         {
             if (amountText != null)
             {
@@ -203,15 +368,33 @@ public class PaymentUI : MonoBehaviour
             }
 
             SetPaymentButtonsInteractable(false);
+
             return;
         }
 
-        if (BillingManager.Instance == null ||
-            !BillingManager.Instance.HasBill)
+        if (BillingManager.Instance == null)
         {
             if (amountText != null)
             {
-                amountText.text = "Amount: RS.0";
+                amountText.text = "Billing system unavailable.";
+            }
+
+            if (paymentMethodText != null)
+            {
+                paymentMethodText.text =
+                    "Payment Method: Not Available";
+            }
+
+            SetPaymentButtonsInteractable(false);
+
+            return;
+        }
+
+        if (!BillingManager.Instance.HasBill)
+        {
+            if (amountText != null)
+            {
+                amountText.text = "Amount: ₹0";
             }
 
             if (paymentMethodText != null)
@@ -221,13 +404,14 @@ public class PaymentUI : MonoBehaviour
             }
 
             SetPaymentButtonsInteractable(false);
+
             return;
         }
 
         if (amountText != null)
         {
             amountText.text =
-                $"Amount: RS.{BillingManager.Instance.CurrentTotalAmount:N0}";
+                $"Amount: ₹{BillingManager.Instance.CurrentTotalAmount:N0}";
         }
 
         if (paymentMethodText != null)
@@ -243,7 +427,8 @@ public class PaymentUI : MonoBehaviour
     // BUTTON STATE
     // =========================================================
 
-    private void SetPaymentButtonsInteractable(bool isInteractable)
+    private void SetPaymentButtonsInteractable(
+        bool isInteractable)
     {
         if (cashButton != null)
         {
@@ -262,7 +447,8 @@ public class PaymentUI : MonoBehaviour
 
         bool canConfirm =
             isInteractable &&
-            selectedPaymentMethod != PaymentManager.PaymentMethod.None;
+            selectedPaymentMethod !=
+            PaymentManager.PaymentMethod.None;
 
         if (confirmButton != null)
         {
@@ -301,13 +487,15 @@ public class PaymentUI : MonoBehaviour
         if (!IsShopOpen())
         {
             Debug.LogWarning(
-                "PaymentUI: Cannot select payment method while shop is closed."
+                "PaymentUI: Cannot select payment method. " +
+                "Shop is closed."
             );
 
             return;
         }
 
-        selectedPaymentMethod = paymentMethod;
+        selectedPaymentMethod =
+            paymentMethod;
 
         Debug.Log(
             $"PaymentUI: Selected payment method: " +
@@ -345,20 +533,24 @@ public class PaymentUI : MonoBehaviour
 
     private void ConfirmPayment()
     {
+        Debug.Log("PaymentUI: ConfirmPayment() called.");
+
         if (!IsShopOpen())
         {
             Debug.LogWarning(
-                "PaymentUI: Cannot confirm payment while shop is closed."
+                "PaymentUI: Cannot confirm payment. " +
+                "Shop is closed."
             );
 
             RefreshUI();
+
             return;
         }
 
         if (BillingManager.Instance == null)
         {
             Debug.LogError(
-                "PaymentUI failed: BillingManager not found."
+                "PaymentUI failed: BillingManager.Instance is NULL."
             );
 
             return;
@@ -386,7 +578,7 @@ public class PaymentUI : MonoBehaviour
         if (PaymentManager.Instance == null)
         {
             Debug.LogError(
-                "PaymentUI failed: PaymentManager not found."
+                "PaymentUI failed: PaymentManager.Instance is NULL."
             );
 
             return;
@@ -423,10 +615,21 @@ public class PaymentUI : MonoBehaviour
 
     public void ClosePanel()
     {
-        if (paymentPanel != null)
+        if (paymentPanel == null)
         {
-            paymentPanel.SetActive(false);
+            Debug.LogWarning(
+                "PaymentUI: Cannot close panel. " +
+                "Payment Panel reference is missing."
+            );
+
+            return;
         }
+
+        paymentPanel.SetActive(false);
+
+        Debug.Log(
+            "PaymentUI: Payment panel closed."
+        );
     }
 
     // =========================================================
