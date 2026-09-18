@@ -11,6 +11,10 @@ public class EmployeeManager : MonoBehaviour
     [Header("Hired Employees")]
     [SerializeField] private List<Employee> employees = new List<Employee>();
 
+    [Header("Employee UI")]
+    [SerializeField] private Transform employeeList;
+    [SerializeField] private EmployeeCardUI employeeCardPrefab;
+
     public IReadOnlyList<Employee> Employees => employees;
     public int EmployeeCount => employees.Count;
     public int MaximumEmployees => maximumEmployees;
@@ -25,6 +29,7 @@ public class EmployeeManager : MonoBehaviour
         }
 
         Instance = this;
+
         Debug.Log("EmployeeManager initialized successfully.");
     }
 
@@ -79,6 +84,8 @@ public class EmployeeManager : MonoBehaviour
             $"Employee hired: {employeeName} | Role: {role} | Salary: ₹{monthlySalary}"
         );
 
+        RefreshEmployeeUI();
+
         return true;
     }
 
@@ -96,6 +103,8 @@ public class EmployeeManager : MonoBehaviour
         employees.Remove(employee);
 
         Debug.Log($"Employee fired: {employee.EmployeeName}");
+
+        RefreshEmployeeUI();
 
         return true;
     }
@@ -132,14 +141,79 @@ public class EmployeeManager : MonoBehaviour
         }
     }
 
-    [ContextMenu("TEST - Hire Sample Employee")]
-    private void TestHireSampleEmployee()
+    private void RefreshEmployeeUI()
+    {
+        if (employeeList == null)
+        {
+            Debug.LogWarning(
+                "EmployeeManager: Employee List reference is not assigned."
+            );
+
+            return;
+        }
+
+        if (employeeCardPrefab == null)
+        {
+            Debug.LogWarning(
+                "EmployeeManager: Employee Card Prefab reference is not assigned."
+            );
+
+            return;
+        }
+
+        ClearEmployeeCards();
+
+        foreach (Employee employee in employees)
+        {
+            EmployeeCardUI employeeCard =
+                Instantiate(employeeCardPrefab, employeeList);
+
+            employeeCard.SetEmployee(employee);
+        }
+
+        Debug.Log(
+            $"Employee UI refreshed. Cards displayed: {employees.Count}"
+        );
+    }
+
+    private void ClearEmployeeCards()
+    {
+        for (int i = employeeList.childCount - 1; i >= 0; i--)
+        {
+            Destroy(employeeList.GetChild(i).gameObject);
+        }
+    }
+
+    [ContextMenu("TEST - Hire Sample Employee 1")]
+    private void TestHireSampleEmployee1()
     {
         HireEmployee(
             "EMP_001",
             "Arun",
             EmployeeRole.Cashier,
             15000
+        );
+    }
+
+    [ContextMenu("TEST - Hire Sample Employee 2")]
+    private void TestHireSampleEmployee2()
+    {
+        HireEmployee(
+            "EMP_002",
+            "Priya",
+            EmployeeRole.ShopAssistant,
+            12000
+        );
+    }
+
+    [ContextMenu("TEST - Hire Sample Employee 3")]
+    private void TestHireSampleEmployee3()
+    {
+        HireEmployee(
+            "EMP_003",
+            "Kumar",
+            EmployeeRole.StockManager,
+            13000
         );
     }
 
@@ -153,5 +227,11 @@ public class EmployeeManager : MonoBehaviour
     private void TestFireSampleEmployee()
     {
         FireEmployee("EMP_001");
+    }
+
+    [ContextMenu("TEST - Refresh Employee UI")]
+    private void TestRefreshEmployeeUI()
+    {
+        RefreshEmployeeUI();
     }
 }
