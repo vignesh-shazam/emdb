@@ -34,7 +34,7 @@ public class CareerJobSwitchInteraction : MonoBehaviour, IInteractable
         Debug.Log(
             $"Career switch accepted | " +
             $"Job: {CareerManager.Instance.CurrentJob} | " +
-            $"Salary: Rs. {CareerManager.Instance.CurrentSalary:N0}"
+            $"Salary: rs. {CareerManager.Instance.CurrentSalary:N0}"
         );
     }
 }

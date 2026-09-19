@@ -147,7 +147,7 @@ public class ShopUpgradeUI : MonoBehaviour
             if (canUpgrade)
             {
                 upgradeCostText.text =
-                    $"Upgrade Cost: Rs. {upgradeCost:N0}";
+                    $"Upgrade Cost: rs. {upgradeCost:N0}";
             }
             else
             {
@@ -212,7 +212,7 @@ public class ShopUpgradeUI : MonoBehaviour
         if (upgradeCostText != null)
         {
             upgradeCostText.text =
-                "Upgrade Cost: Rs. 1,000";
+                "Upgrade Cost: rs. 1,000";
         }
 
         if (revenueMultiplierText != null)

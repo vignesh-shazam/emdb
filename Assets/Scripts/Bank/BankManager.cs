@@ -248,9 +248,9 @@ public class BankManager : MonoBehaviour
         Debug.Log(
             $"Bank initialized | " +
             $"Savings: {SavingsAccountNumber} | " +
-            $"Balance: Rs. {SavingsBalance:N0} | " +
+            $"Balance: rs. {SavingsBalance:N0} | " +
             $"Current: {CurrentAccountNumber} | " +
-            $"Balance: Rs. {CurrentBalance:N0}"
+            $"Balance: rs. {CurrentBalance:N0}"
         );
     }
 
@@ -392,7 +392,7 @@ public class BankManager : MonoBehaviour
                 Debug.Log(
                     $"Overdue EMI paid | " +
                     $"Original Month: {overdueMonth} | " +
-                    $"Amount: Rs. {monthlyEmiAmount:N0}"
+                    $"Amount: rs. {monthlyEmiAmount:N0}"
                 );
 
                 if (bounceCharge > 0)
@@ -419,7 +419,7 @@ public class BankManager : MonoBehaviour
                     Debug.Log(
                         $"Bounce charge applied | " +
                         $"Failed Month: {overdueMonth} | " +
-                        $"Amount: Rs. {bounceCharge:N0}"
+                        $"Amount: rs. {bounceCharge:N0}"
                     );
                 }
             }
@@ -456,8 +456,8 @@ public class BankManager : MonoBehaviour
         Debug.Log(
             $"Current EMI paid | " +
             $"Month: {currentMonth} | " +
-            $"Amount: Rs. {currentEmiAmount:N0} | " +
-            $"Savings Balance: Rs. {SavingsBalance:N0}"
+            $"Amount: rs. {currentEmiAmount:N0} | " +
+            $"Savings Balance: rs. {SavingsBalance:N0}"
         );
     }
 
@@ -482,8 +482,8 @@ public class BankManager : MonoBehaviour
         Debug.LogWarning(
             $"EMI debit FAILED | " +
             $"Month: {currentMonth} | " +
-            $"Required: Rs. {monthlyEmiAmount:N0} | " +
-            $"Available: Rs. {SavingsBalance:N0} | " +
+            $"Required: rs. {monthlyEmiAmount:N0} | " +
+            $"Available: rs. {SavingsBalance:N0} | " +
             $"No expense recorded. EMI marked overdue."
         );
     }
@@ -519,8 +519,8 @@ public class BankManager : MonoBehaviour
             Debug.LogWarning(
                 $"Bank debit failed | " +
                 $"Account: {accountType} | " +
-                $"Required: Rs. {amount:N0} | " +
-                $"Available: Rs. {account.Balance:N0}"
+                $"Required: rs. {amount:N0} | " +
+                $"Available: rs. {account.Balance:N0}"
             );
 
             return false;
@@ -579,8 +579,8 @@ public class BankManager : MonoBehaviour
         Debug.Log(
             $"Bank credit successful | " +
             $"Account: {accountType} | " +
-            $"Amount: Rs. {amount:N0} | " +
-            $"Balance: Rs. {account.Balance:N0}"
+            $"Amount: rs. {amount:N0} | " +
+            $"Balance: rs. {account.Balance:N0}"
         );
 
         return true;
@@ -617,8 +617,8 @@ public class BankManager : MonoBehaviour
         Debug.Log(
             $"Bank debit successful | " +
             $"Account: {accountType} | " +
-            $"Amount: Rs. {amount:N0} | " +
-            $"Balance: Rs. {GetBalance(accountType):N0}"
+            $"Amount: rs. {amount:N0} | " +
+            $"Balance: rs. {GetBalance(accountType):N0}"
         );
 
         return true;
@@ -667,7 +667,7 @@ public class BankManager : MonoBehaviour
         {
             Debug.LogWarning(
                 $"Deposit failed: Insufficient money. " +
-                $"Required: Rs. {amount:N0}"
+                $"Required: rs. {amount:N0}"
             );
 
             return false;
@@ -701,8 +701,8 @@ public class BankManager : MonoBehaviour
         Debug.Log(
             $"Deposit successful | " +
             $"Account: {accountType} | " +
-            $"Amount: Rs. {amount:N0} | " +
-            $"Balance: Rs. {account.Balance:N0}"
+            $"Amount: rs. {amount:N0} | " +
+            $"Balance: rs. {account.Balance:N0}"
         );
 
         return true;
@@ -755,7 +755,7 @@ public class BankManager : MonoBehaviour
             Debug.LogWarning(
                 $"Withdraw failed | " +
                 $"Account: {accountType} | " +
-                $"Available: Rs. {account.Balance:N0}"
+                $"Available: rs. {account.Balance:N0}"
             );
 
             return false;
@@ -785,8 +785,8 @@ public class BankManager : MonoBehaviour
         Debug.Log(
             $"Withdraw successful | " +
             $"Account: {accountType} | " +
-            $"Amount: Rs. {amount:N0} | " +
-            $"Balance: Rs. {account.Balance:N0}"
+            $"Amount: rs. {amount:N0} | " +
+            $"Balance: rs. {account.Balance:N0}"
         );
 
         return true;
@@ -821,7 +821,7 @@ public class BankManager : MonoBehaviour
             $"Finance income recorded | " +
             $"Account: {accountType} | " +
             $"Description: {description} | " +
-            $"Amount: Rs. {amount:N0}"
+            $"Amount: rs. {amount:N0}"
         );
     }
 
@@ -854,7 +854,7 @@ public class BankManager : MonoBehaviour
             $"Finance expense recorded | " +
             $"Account: {accountType} | " +
             $"Description: {description} | " +
-            $"Amount: Rs. {amount:N0}"
+            $"Amount: rs. {amount:N0}"
         );
     }
 
@@ -882,8 +882,8 @@ public class BankManager : MonoBehaviour
             $"Bank transaction recorded | " +
             $"Account: {accountType} | " +
             $"Type: {type} | " +
-            $"Amount: Rs. {amount:N0} | " +
-            $"Balance: Rs. {GetBalance(accountType):N0}"
+            $"Amount: rs. {amount:N0} | " +
+            $"Balance: rs. {GetBalance(accountType):N0}"
         );
     }
 

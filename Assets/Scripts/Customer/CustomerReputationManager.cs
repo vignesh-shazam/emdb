@@ -78,7 +78,7 @@ public class CustomerReputationManager : MonoBehaviour
 
     private void OnEnable()
     {
-        CustomerSatisfactionManager.OnSatisfactionChanged +=
+        CustomersatisfactionManager.OnSatisfactionChanged +=
             UpdateReputation;
     }
 
@@ -88,7 +88,7 @@ public class CustomerReputationManager : MonoBehaviour
 
     private void OnDisable()
     {
-        CustomerSatisfactionManager.OnSatisfactionChanged -=
+        CustomersatisfactionManager.OnSatisfactionChanged -=
             UpdateReputation;
     }
 
@@ -141,13 +141,13 @@ public class CustomerReputationManager : MonoBehaviour
 
     private void UpdateReputation()
     {
-        if (CustomerSatisfactionManager.Instance == null)
+        if (CustomersatisfactionManager.Instance == null)
         {
             return;
         }
 
         int satisfaction =
-            CustomerSatisfactionManager.Instance
+            CustomersatisfactionManager.Instance
                 .Satisfaction;
 
         int oldLevel =

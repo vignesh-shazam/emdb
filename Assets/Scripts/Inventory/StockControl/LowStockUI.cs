@@ -212,7 +212,7 @@ public class LowStockUI : MonoBehaviour
     }
 
     // --------------------------------------------------
-    // REMOVE ITEM ROW LISTENERS
+    // REMOVE ITEM ROW Listeners
     // --------------------------------------------------
 
     private void RemoveItemRowListeners(

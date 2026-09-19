@@ -61,7 +61,7 @@ public class CustomerTipManager : MonoBehaviour
 
         Debug.Log(
             $"Customer Tip Manager initialized | " +
-            $"Unclaimed Tips: Rs. {unclaimedTips:N0}"
+            $"Unclaimed Tips: rs. {unclaimedTips:N0}"
         );
 
         OnTipsChanged?.Invoke();
@@ -110,8 +110,8 @@ public class CustomerTipManager : MonoBehaviour
         Debug.Log(
             $"Tip generated | " +
             $"Customer: {customer.CustomerName} | " +
-            $"Tip: Rs. {tipAmount:N0} | " +
-            $"Unclaimed Tips: Rs. {unclaimedTips:N0}"
+            $"Tip: rs. {tipAmount:N0} | " +
+            $"Unclaimed Tips: rs. {unclaimedTips:N0}"
         );
 
         OnTipsChanged?.Invoke();
@@ -196,8 +196,8 @@ public class CustomerTipManager : MonoBehaviour
 
         Debug.Log(
             $"Tips claimed successfully | " +
-            $"Amount: Rs. {claimedAmount:N0} | " +
-            $"Unclaimed Tips: Rs. 0"
+            $"Amount: rs. {claimedAmount:N0} | " +
+            $"Unclaimed Tips: rs. 0"
         );
 
         OnTipsChanged?.Invoke();
@@ -232,7 +232,7 @@ public class CustomerTipManager : MonoBehaviour
         Debug.Log(
             $"Tip claimed recorded | " +
             $"Account: Shop | " +
-            $"Amount: Rs. {amount:N0}"
+            $"Amount: rs. {amount:N0}"
         );
     }
 
@@ -246,7 +246,7 @@ public class CustomerTipManager : MonoBehaviour
 
         Debug.Log(
             "Unclaimed tips reset | " +
-            "Tips: Rs. 0"
+            "Tips: rs. 0"
         );
 
         OnTipsChanged?.Invoke();

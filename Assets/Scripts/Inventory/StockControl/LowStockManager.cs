@@ -238,7 +238,7 @@ public class LowStockManager : MonoBehaviour
             return;
         }
 
-        StoreRoomManager.Instance.ClearStoreRoom();
+        StoreRoomManager.Instance.ClearstoreRoom();
 
         StoreRoomManager.Instance.AddStock(
             "food_001",
@@ -276,7 +276,7 @@ public class LowStockManager : MonoBehaviour
             return;
         }
 
-        StoreRoomManager.Instance.ClearStoreRoom();
+        StoreRoomManager.Instance.ClearstoreRoom();
 
         StoreRoomManager.Instance.AddStock(
             "food_001",
@@ -324,7 +324,7 @@ public class LowStockManager : MonoBehaviour
             return;
         }
 
-        StoreRoomManager.Instance.ClearStoreRoom();
+        StoreRoomManager.Instance.ClearstoreRoom();
 
         // food_001 → Milk
         // 15 → LOW
@@ -362,7 +362,7 @@ public class LowStockManager : MonoBehaviour
     // --------------------------------------------------
 
     [ContextMenu("TEST 5 - Clear Store Room")]
-    private void TestClearStoreRoom()
+    private void TestClearstoreRoom()
     {
         if (StoreRoomManager.Instance == null)
         {
@@ -374,7 +374,7 @@ public class LowStockManager : MonoBehaviour
             return;
         }
 
-        StoreRoomManager.Instance.ClearStoreRoom();
+        StoreRoomManager.Instance.ClearstoreRoom();
 
         Debug.Log(
             "LowStock Test: Store Room cleared."

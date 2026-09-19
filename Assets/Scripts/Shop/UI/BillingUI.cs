@@ -165,13 +165,13 @@ public class BillingUI : MonoBehaviour
         if (unitPriceText != null)
         {
             unitPriceText.text =
-                $"Unit Price: RS.{billingManager.CurrentUnitPrice:N0}";
+                $"Unit Price: rs.{billingManager.CurrentUnitPrice:N0}";
         }
 
         if (totalText != null)
         {
             totalText.text =
-                $"TOTAL: RS.{billingManager.CurrentTotalAmount:N0}";
+                $"TOTAL: rs.{billingManager.CurrentTotalAmount:N0}";
         }
 
         if (billingPanel != null &&
@@ -209,12 +209,12 @@ public class BillingUI : MonoBehaviour
 
         if (unitPriceText != null)
         {
-            unitPriceText.text = "Unit Price: RS.0";
+            unitPriceText.text = "Unit Price: rs.0";
         }
 
         if (totalText != null)
         {
-            totalText.text = "TOTAL: RS.0";
+            totalText.text = "TOTAL: rs.0";
         }
     }
 
@@ -307,7 +307,7 @@ public class BillingUI : MonoBehaviour
             CustomerManager.Instance.ActiveCustomers.Count == 0)
         {
             Debug.LogWarning(
-                "BillingUI Test: No active customers."
+                "BillingUI Test: No active Customers"
             );
 
             return;

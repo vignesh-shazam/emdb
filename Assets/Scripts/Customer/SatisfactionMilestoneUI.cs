@@ -27,7 +27,7 @@ public class SatisfactionMilestoneUI : MonoBehaviour
 
     private void OnEnable()
     {
-        CustomerSatisfactionManager.OnMaximumSatisfactionReached +=
+        CustomersatisfactionManager.OnMaximumSatisfactionReached +=
             ShowMilestone;
 
         HideMilestone();
@@ -39,7 +39,7 @@ public class SatisfactionMilestoneUI : MonoBehaviour
 
     private void OnDisable()
     {
-        CustomerSatisfactionManager.OnMaximumSatisfactionReached -=
+        CustomersatisfactionManager.OnMaximumSatisfactionReached -=
             ShowMilestone;
 
         if (hideCoroutine != null)

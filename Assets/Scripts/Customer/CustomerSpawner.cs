@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-public class CustomerSpawner : MonoBehaviour
+public class Customerspawner : MonoBehaviour
 {
     [Header("Customer")]
     [SerializeField] private GameObject customerPrefab;
@@ -106,7 +106,7 @@ public class CustomerSpawner : MonoBehaviour
             StopNextCustomerTimer();
 
             Debug.Log(
-                "CustomerSpawner: Shop closed. " +
+                "Customerspawner: Shop closed. " +
                 "New customer spawning stopped."
             );
 
@@ -267,12 +267,12 @@ public class CustomerSpawner : MonoBehaviour
 
         if (currentCustomerObject != null)
         {
-            bool customerStillExists =
+            bool CustomerstillExists =
                 CustomerManager.Instance.HasCustomer(
                     currentCustomerId
                 );
 
-            if (!customerStillExists)
+            if (!CustomerstillExists)
             {
                 DestroyCurrentCustomer();
 
@@ -327,7 +327,7 @@ public class CustomerSpawner : MonoBehaviour
             waitingForNextCustomer = false;
 
             Debug.Log(
-                "CustomerSpawner: Next customer timer stopped."
+                "Customerspawner: Next customer timer stopped."
             );
         }
     }

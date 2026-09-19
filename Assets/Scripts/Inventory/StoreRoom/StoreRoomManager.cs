@@ -424,7 +424,7 @@ public class StoreRoomManager : MonoBehaviour
     // CLEAR STORE ROOM
     // =========================================================
 
-    public void ClearStoreRoom()
+    public void ClearstoreRoom()
     {
         storeRoomStocks.Clear();
 
@@ -471,9 +471,9 @@ public class StoreRoomManager : MonoBehaviour
     }
 
     [ContextMenu("TEST - Clear Store Room")]
-    private void TestClearStoreRoom()
+    private void TestClearstoreRoom()
     {
-        ClearStoreRoom();
+        ClearstoreRoom();
     }
 
     [ContextMenu("TEST - Add 5 Milk")]

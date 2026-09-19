@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 
-public class CustomerSatisfactionMilestoneManager : MonoBehaviour
+public class CustomersatisfactionMilestoneManager : MonoBehaviour
 {
-    public static CustomerSatisfactionMilestoneManager Instance { get; private set; }
+    public static CustomersatisfactionMilestoneManager Instance { get; private set; }
 
     [Header("Milestones")]
     [SerializeField]
@@ -46,7 +46,7 @@ public class CustomerSatisfactionMilestoneManager : MonoBehaviour
 
     private void OnEnable()
     {
-        CustomerSatisfactionManager.OnSatisfactionChanged +=
+        CustomersatisfactionManager.OnSatisfactionChanged +=
             CheckMilestones;
     }
 
@@ -56,7 +56,7 @@ public class CustomerSatisfactionMilestoneManager : MonoBehaviour
 
     private void OnDisable()
     {
-        CustomerSatisfactionManager.OnSatisfactionChanged -=
+        CustomersatisfactionManager.OnSatisfactionChanged -=
             CheckMilestones;
     }
 
@@ -97,13 +97,13 @@ public class CustomerSatisfactionMilestoneManager : MonoBehaviour
 
     private void CheckMilestones()
     {
-        if (CustomerSatisfactionManager.Instance == null)
+        if (CustomersatisfactionManager.Instance == null)
         {
             return;
         }
 
         int satisfaction =
-            CustomerSatisfactionManager.Instance
+            CustomersatisfactionManager.Instance
                 .Satisfaction;
 
         CheckMilestone(
@@ -135,13 +135,13 @@ public class CustomerSatisfactionMilestoneManager : MonoBehaviour
         int milestone,
         string milestoneName)
     {
-        if (CustomerSatisfactionManager.Instance == null)
+        if (CustomersatisfactionManager.Instance == null)
         {
             return;
         }
 
         int satisfaction =
-            CustomerSatisfactionManager.Instance
+            CustomersatisfactionManager.Instance
                 .Satisfaction;
 
         if (satisfaction == milestone)
@@ -159,13 +159,13 @@ public class CustomerSatisfactionMilestoneManager : MonoBehaviour
 
     public string GetMilestoneName()
     {
-        if (CustomerSatisfactionManager.Instance == null)
+        if (CustomersatisfactionManager.Instance == null)
         {
             return "Starting";
         }
 
         int satisfaction =
-            CustomerSatisfactionManager.Instance
+            CustomersatisfactionManager.Instance
                 .Satisfaction;
 
         if (satisfaction >= milestone100)
@@ -197,13 +197,13 @@ public class CustomerSatisfactionMilestoneManager : MonoBehaviour
 
     public int GetCurrentMilestone()
     {
-        if (CustomerSatisfactionManager.Instance == null)
+        if (CustomersatisfactionManager.Instance == null)
         {
             return 0;
         }
 
         int satisfaction =
-            CustomerSatisfactionManager.Instance
+            CustomersatisfactionManager.Instance
                 .Satisfaction;
 
         if (satisfaction >= milestone100)

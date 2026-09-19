@@ -1,9 +1,9 @@
 ﻿using System;
 using UnityEngine;
 
-public class CustomerSatisfactionManager : MonoBehaviour
+public class CustomersatisfactionManager : MonoBehaviour
 {
-    public static CustomerSatisfactionManager Instance { get; private set; }
+    public static CustomersatisfactionManager Instance { get; private set; }
 
     public static event Action OnSatisfactionChanged;
     public static event Action OnMaximumSatisfactionReached;
@@ -113,7 +113,7 @@ public class CustomerSatisfactionManager : MonoBehaviour
     // CUSTOMER SERVED
     // =========================
 
-    public void CustomerServed(Customer customer)
+    public void Customerserved(Customer customer)
     {
         if (customer == null)
         {

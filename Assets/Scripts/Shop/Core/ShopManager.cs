@@ -350,7 +350,7 @@ public class ShopManager : MonoBehaviour
         {
             Debug.LogWarning(
                 $"Shop upgrade failed: Insufficient funds. " +
-                $"Required: Rs. {upgradeCost:N0}"
+                $"Required: rs. {upgradeCost:N0}"
             );
 
             return false;
@@ -361,7 +361,7 @@ public class ShopManager : MonoBehaviour
         Debug.Log(
             $"SHOP UPGRADED | " +
             $"New Level: {shopUpgradeLevel} | " +
-            $"Cost: Rs. {upgradeCost:N0} | " +
+            $"Cost: rs. {upgradeCost:N0} | " +
             $"Revenue Multiplier: {RevenueMultiplier:F2}x | " +
             $"Customer Growth: {CustomerGrowthMultiplier:F2}x"
         );
@@ -505,7 +505,7 @@ public class ShopManager : MonoBehaviour
             Debug.LogWarning(
                 $"Buy failed: Insufficient money. " +
                 $"Item: {item.ItemName} | " +
-                $"Required: Rs. {item.BuyPrice:N0}"
+                $"Required: rs. {item.BuyPrice:N0}"
             );
 
             return false;
@@ -550,7 +550,7 @@ public class ShopManager : MonoBehaviour
         Debug.Log(
             $"Purchase successful | " +
             $"Item: {item.ItemName} | " +
-            $"Price: Rs. {item.BuyPrice:N0} | " +
+            $"Price: rs. {item.BuyPrice:N0} | " +
             $"Inventory: " +
             $"{InventoryManager.Instance.GetQuantity(item.ItemId)} | " +
             $"Customer Purchase: " +
@@ -590,7 +590,7 @@ public class ShopManager : MonoBehaviour
         Debug.Log(
             $"Shop purchase recorded | " +
             $"Item: {item.ItemName} | " +
-            $"Amount: Rs. {item.BuyPrice:N0}"
+            $"Amount: rs. {item.BuyPrice:N0}"
         );
     }
 
@@ -666,7 +666,7 @@ public class ShopManager : MonoBehaviour
         Debug.Log(
             $"Customer purchase undone | " +
             $"Item: {item.ItemName} | " +
-            $"Refund: Rs. {item.BuyPrice:N0} | " +
+            $"Refund: rs. {item.BuyPrice:N0} | " +
             $"Inventory: " +
             $"{InventoryManager.Instance.GetQuantity(item.ItemId)}"
         );
@@ -740,7 +740,7 @@ public class ShopManager : MonoBehaviour
                     $"Expired customer purchase cancelled | " +
                     $"Item: {item.ItemName} | " +
                     $"Quantity: {quantity} | " +
-                    $"Refund: Rs. {refund:N0}"
+                    $"Refund: rs. {refund:N0}"
                 );
 
                 RemovePurchasedItem(itemId, quantity);

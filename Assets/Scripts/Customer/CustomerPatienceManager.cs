@@ -4,7 +4,7 @@ public class CustomerPatienceManager : MonoBehaviour
 {
     [Header("Patience Settings")]
     [SerializeField]
-    private float patienceDecreasePerSecond = 0.10f;
+    private float patienceDecreasePersecond = 0.10f;
 
     [SerializeField]
     private bool decreaseOnlyWhenShopIsOpen = true;
@@ -32,9 +32,9 @@ public class CustomerPatienceManager : MonoBehaviour
 
     private void Awake()
     {
-        if (patienceDecreasePerSecond < 0f)
+        if (patienceDecreasePersecond < 0f)
         {
-            patienceDecreasePerSecond = 0f;
+            patienceDecreasePersecond = 0f;
         }
 
         if (debugLogInterval <= 0f)
@@ -44,7 +44,7 @@ public class CustomerPatienceManager : MonoBehaviour
 
         Debug.Log(
             $"CustomerPatienceManager initialized | " +
-            $"Decrease Per Second: {patienceDecreasePerSecond:0.00} | " +
+            $"Decrease Per Second: {patienceDecreasePersecond:0.00} | " +
             $"Shop Open Only: {decreaseOnlyWhenShopIsOpen} | " +
             $"Pause During Billing: {pauseDuringBilling} | " +
             $"Pause During Payment: {pauseDuringPayment}"
@@ -142,13 +142,13 @@ public class CustomerPatienceManager : MonoBehaviour
             return;
         }
 
-        if (patienceDecreasePerSecond <= 0f)
+        if (patienceDecreasePersecond <= 0f)
         {
             return;
         }
 
         float decreaseAmount =
-            patienceDecreasePerSecond *
+            patienceDecreasePersecond *
             Time.deltaTime;
 
         customer.ReducePatience(
@@ -231,9 +231,9 @@ public class CustomerPatienceManager : MonoBehaviour
         // UPDATE SATISFACTION
         // =====================================================
 
-        if (CustomerSatisfactionManager.Instance != null)
+        if (CustomersatisfactionManager.Instance != null)
         {
-            CustomerSatisfactionManager.Instance.CustomerLeft(
+            CustomersatisfactionManager.Instance.CustomerLeft(
                 customer
             );
         }
@@ -280,20 +280,20 @@ public class CustomerPatienceManager : MonoBehaviour
     // PUBLIC SETTINGS
     // =========================================================
 
-    public float GetPatienceDecreasePerSecond()
+    public float GetPatienceDecreasePersecond()
     {
-        return patienceDecreasePerSecond;
+        return patienceDecreasePersecond;
     }
 
-    public void SetPatienceDecreasePerSecond(
+    public void SetPatienceDecreasePersecond(
         float value)
     {
-        patienceDecreasePerSecond =
+        patienceDecreasePersecond =
             Mathf.Max(0f, value);
 
         Debug.Log(
             $"Customer patience decrease updated | " +
-            $"Value: {patienceDecreasePerSecond:0.00} per second"
+            $"Value: {patienceDecreasePersecond:0.00} per second"
         );
     }
 
@@ -334,13 +334,13 @@ public class CustomerPatienceManager : MonoBehaviour
     [ContextMenu("TEST - Set Slow Patience")]
     private void TestSetSlowPatience()
     {
-        SetPatienceDecreasePerSecond(0.10f);
+        SetPatienceDecreasePersecond(0.10f);
     }
 
     [ContextMenu("TEST - Set Very Slow Patience")]
     private void TestSetVerySlowPatience()
     {
-        SetPatienceDecreasePerSecond(0.05f);
+        SetPatienceDecreasePersecond(0.05f);
     }
 
     [ContextMenu("TEST - Enable Patience Logs")]

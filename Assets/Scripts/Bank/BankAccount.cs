@@ -16,7 +16,7 @@ public class BankAccount
     public int Balance;
 
     // =========================================================
-    // ACCOUNT TYPE HELPERS
+    // ACCOUNT TYPE HELPErs
     // =========================================================
 
     public bool IsSavingsAccount =>

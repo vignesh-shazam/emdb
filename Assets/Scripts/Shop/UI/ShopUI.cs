@@ -164,7 +164,7 @@ public class ShopUI : MonoBehaviour
         if (priceText != null)
         {
             priceText.text =
-                $"Rs. {item.BuyPrice:N0}";
+                $"rs. {item.BuyPrice:N0}";
         }
 
         // =========================

@@ -57,7 +57,7 @@ pixel_t VertShader(vertex_t input)
     float2 maskUV = (vert.xy - clampedRect.xy) / (clampedRect.zw - clampedRect.xy);
 
     float4 color = input.color;
-    #if (FORCE_LINEAR && !UNITY_COLORSPACE_GAMMA)
+    #if (FORCE_LINEAR && !UNITY_COLOrsPACE_GAMMA)
     color = SRGBToLinear(input.color);
     #endif
 
@@ -110,9 +110,9 @@ float4 PixShader(pixel_t input) : SV_Target
     float scale = 1 / pixelSize * _GradientScale * (_Sharpness + 1);
 
     #if (UNDERLAY_ON | UNDERLAY_INNER)
-    float layerScale = scale;
-    layerScale /= 1 + ((_UnderlaySoftness * _ScaleRatioC) * layerScale);
-    float layerBias = input.param.x * layerScale - .5 - ((_UnderlayDilate * _ScaleRatioC) * .5 * layerScale);
+    float layerscale = scale;
+    layerscale /= 1 + ((_UnderlaySoftness * _ScaleRatioC) * layerscale);
+    float layerBias = input.param.x * layerscale - .5 - ((_UnderlayDilate * _ScaleRatioC) * .5 * layerscale);
     #endif
 
     scale /= 1 + (_OutlineSoftness * _ScaleRatioA * scale);
@@ -126,14 +126,14 @@ float4 PixShader(pixel_t input) : SV_Target
     #endif
 
     #if UNDERLAY_ON
-    d = tex2D(_MainTex, input.texcoord2.xy).a * layerScale;
+    d = tex2D(_MainTex, input.texcoord2.xy).a * layerscale;
     faceColor += float4(_UnderlayColor.rgb * _UnderlayColor.a, _UnderlayColor.a) * saturate(d - layerBias) * (1 - faceColor.a);
     #endif
 
     #if UNDERLAY_INNER
     float bias = input.param.x * scale - 0.5;
     float sd = saturate(d * scale - bias - input.param.z);
-    d = tex2D(_MainTex, input.texcoord2.xy).a * layerScale;
+    d = tex2D(_MainTex, input.texcoord2.xy).a * layerscale;
     faceColor += float4(_UnderlayColor.rgb * _UnderlayColor.a, _UnderlayColor.a) * (1 - saturate(d - layerBias)) * sd * (1 - faceColor.a);
     #endif
 

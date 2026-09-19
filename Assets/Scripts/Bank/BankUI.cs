@@ -133,7 +133,7 @@ public class BankUI : MonoBehaviour
         if (balanceText != null)
         {
             balanceText.text =
-                $"Bank Balance: Rs. " +
+                $"Bank Balance: rs. " +
                 $"{BankManager.Instance.SavingsBalance:N0}";
         }
 
@@ -243,7 +243,7 @@ public class BankUI : MonoBehaviour
 
             history.AppendLine(
                 $"{transactionType}  " +
-                $"{sign}Rs. {transaction.Amount:N0}"
+                $"{sign}rs. {transaction.Amount:N0}"
             );
         }
 

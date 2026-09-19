@@ -58,7 +58,7 @@ SubShader {
   {
 		"Queue"="Overlay"
 		"IgnoreProjector"="True"
-		"RenderType"="Transparent"
+		"RenderType"="TransParsent"
 	}
 
 
@@ -151,7 +151,7 @@ SubShader {
 			float weight = lerp(_WeightNormal, _WeightBold, bold) / 4.0;
 			weight = (weight + _FaceDilate) * _ScaleRatioA * 0.5;
 
-			float layerScale = scale;
+			float layerscale = scale;
 
 			scale /= 1 + (_OutlineSoftness * _ScaleRatioA * scale);
 			float bias = (0.5 - weight) * scale - 0.5;
@@ -175,8 +175,8 @@ SubShader {
 			outlineColor = lerp(faceColor, outlineColor, sqrt(min(1.0, (outline * 2))));
 
 		    #if (UNDERLAY_ON | UNDERLAY_INNER)
-			layerScale /= 1 + ((_UnderlaySoftness * _ScaleRatioC) * layerScale);
-			float layerBias = (.5 - weight) * layerScale - .5 - ((_UnderlayDilate * _ScaleRatioC) * .5 * layerScale);
+			layerscale /= 1 + ((_UnderlaySoftness * _ScaleRatioC) * layerscale);
+			float layerBias = (.5 - weight) * layerscale - .5 - ((_UnderlayDilate * _ScaleRatioC) * .5 * layerscale);
 
 			float x = -(_UnderlayOffsetX * _ScaleRatioC) * _GradientScale / _TextureWidth;
 			float y = -(_UnderlayOffsetY * _ScaleRatioC) * _GradientScale / _TextureHeight;
@@ -197,7 +197,7 @@ SubShader {
 			output.mask = half4(vert.xy * 2 - clampedRect.xy - clampedRect.zw, 0.25 / (0.25 * maskSoftness + pixelSize.xy));
 			#if (UNDERLAY_ON || UNDERLAY_INNER)
 			output.texcoord1 = float4(input.texcoord0 + layerOffset, input.color.a, 0);
-			output.underlayParam = half2(layerScale, layerBias);
+			output.underlayParam = half2(layerscale, layerBias);
 			#endif
 
 			return output;

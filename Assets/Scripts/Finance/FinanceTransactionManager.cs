@@ -199,7 +199,7 @@ public class FinanceTransactionManager : MonoBehaviour
             $"Finance transaction recorded | " +
             $"Account: {accountType} | " +
             $"Type: {(isIncome ? "Income" : "Expense")} | " +
-            $"Amount: Rs. {amount:N0} | " +
+            $"Amount: rs. {amount:N0} | " +
             $"Description: {description} | " +
             $"Day: {day} | " +
             $"Time: {hour:D2}:{minute:D2}"

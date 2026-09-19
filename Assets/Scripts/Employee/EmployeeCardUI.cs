@@ -20,7 +20,7 @@ public class EmployeeCardUI : MonoBehaviour
 
         employeeNameText.text = employee.EmployeeName;
         employeeRoleText.text = employee.Role.ToString();
-        employeeSalaryText.text = $"Rs. {employee.MonthlySalary:N0}";
+        employeeSalaryText.text = $"rs. {employee.MonthlySalary:N0}";
         employeeProductivityText.text = $"{employee.Productivity * 100f:0}%";
         employeeStatusText.text = employee.IsHired ? "Hired" : "Not Hired";
     }

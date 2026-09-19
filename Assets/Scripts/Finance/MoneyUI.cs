@@ -25,11 +25,11 @@ public class MoneyUI : MonoBehaviour
 
         if (MoneyManager.Instance == null)
         {
-            moneyText.text = "Money: Rs. 0";
+            moneyText.text = "Money: rs. 0";
             return;
         }
 
         moneyText.text =
-            $"Money: Rs. {MoneyManager.Instance.CurrentMoney:N0}";
+            $"Money: rs. {MoneyManager.Instance.CurrentMoney:N0}";
     }
 }

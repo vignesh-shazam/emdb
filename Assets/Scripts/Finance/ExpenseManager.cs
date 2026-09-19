@@ -150,8 +150,8 @@ public class ExpenseManager : MonoBehaviour
             Debug.Log(
                 $"Expense rejected: {description}. " +
                 $"Account: {accountType} | " +
-                $"Required: Rs. {amount:N0} | " +
-                $"Available: Rs. {currentBalance:N0}"
+                $"Required: rs. {amount:N0} | " +
+                $"Available: rs. {currentBalance:N0}"
             );
 
             return false;
@@ -187,8 +187,8 @@ public class ExpenseManager : MonoBehaviour
             $"Account: {accountType} | " +
             $"Description: {description} | " +
             $"Category: {category} | " +
-            $"Amount: Rs. {amount:N0} | " +
-            $"Remaining: Rs. " +
+            $"Amount: rs. {amount:N0} | " +
+            $"Remaining: rs. " +
             $"{BankManager.Instance.GetBalance(accountType):N0}"
         );
 

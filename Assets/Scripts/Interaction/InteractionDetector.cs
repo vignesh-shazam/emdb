@@ -54,7 +54,7 @@ public class InteractionDetector : MonoBehaviour
         }
 
         CurrentInteractable =
-            hit.collider.GetComponentInParent<IInteractable>();
+     hit.collider.gameObject.GetComponentInParent<IInteractable>();
     }
 
     private void Interact()

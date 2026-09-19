@@ -1,7 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 
-public class CustomerSatisfactionUI : MonoBehaviour
+public class CustomersatisfactionUI : MonoBehaviour
 {
     [Header("Satisfaction UI")]
     [SerializeField]
@@ -13,7 +13,7 @@ public class CustomerSatisfactionUI : MonoBehaviour
 
     private void OnEnable()
     {
-        CustomerSatisfactionManager.OnSatisfactionChanged +=
+        CustomersatisfactionManager.OnSatisfactionChanged +=
             RefreshUI;
 
         RefreshUI();
@@ -25,7 +25,7 @@ public class CustomerSatisfactionUI : MonoBehaviour
 
     private void OnDisable()
     {
-        CustomerSatisfactionManager.OnSatisfactionChanged -=
+        CustomersatisfactionManager.OnSatisfactionChanged -=
             RefreshUI;
     }
 
@@ -49,7 +49,7 @@ public class CustomerSatisfactionUI : MonoBehaviour
             return;
         }
 
-        if (CustomerSatisfactionManager.Instance == null)
+        if (CustomersatisfactionManager.Instance == null)
         {
             satisfactionText.text =
                 "Customer Satisfaction: 0 / 100";
@@ -58,11 +58,11 @@ public class CustomerSatisfactionUI : MonoBehaviour
         }
 
         int satisfaction =
-            CustomerSatisfactionManager.Instance
+            CustomersatisfactionManager.Instance
                 .Satisfaction;
 
         int maximumSatisfaction =
-            CustomerSatisfactionManager.Instance
+            CustomersatisfactionManager.Instance
                 .MaximumSatisfaction;
 
         satisfactionText.text =

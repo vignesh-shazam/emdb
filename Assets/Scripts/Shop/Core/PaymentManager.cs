@@ -193,9 +193,9 @@ public class PaymentManager : MonoBehaviour
         // UPDATE SATISFACTION
         // =========================
 
-        if (CustomerSatisfactionManager.Instance != null)
+        if (CustomersatisfactionManager.Instance != null)
         {
-            CustomerSatisfactionManager.Instance.CustomerServed(
+            CustomersatisfactionManager.Instance.Customerserved(
                 customer
             );
         }
@@ -242,7 +242,7 @@ public class PaymentManager : MonoBehaviour
             $"PAYMENT COMPLETED | " +
             $"Customer: {customer.CustomerName} | " +
             $"Payment Method: {paymentMethod} | " +
-            $"Amount: Rs. {paymentAmount:N0} | " +
+            $"Amount: rs. {paymentAmount:N0} | " +
             $"Account: Current"
         );
 
@@ -257,7 +257,7 @@ public class PaymentManager : MonoBehaviour
         Debug.Log(
             $"LAST PAYMENT | " +
             $"Method: {LastPaymentMethod} | " +
-            $"Amount: Rs. {LastPaymentAmount:N0}"
+            $"Amount: rs. {LastPaymentAmount:N0}"
         );
     }
 

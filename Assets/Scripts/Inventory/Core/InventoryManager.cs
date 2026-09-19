@@ -231,8 +231,8 @@ public class InventoryManager : MonoBehaviour
             $"Added: {quantity} | " +
             $"Quantity: {newItem.Quantity} | " +
             $"Units/Box: {newItem.UnitsPerBox} | " +
-            $"Purchase/Box: Rs. {newItem.PurchasePricePerBox:N0} | " +
-            $"Selling/Unit: Rs. {newItem.SellingPricePerUnit:N0}"
+            $"Purchase/Box: rs. {newItem.PurchasePricePerBox:N0} | " +
+            $"Selling/Unit: rs. {newItem.SellingPricePerUnit:N0}"
         );
 
         NotifyInventoryChanged();

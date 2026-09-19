@@ -78,7 +78,7 @@ public class CustomerTipUI : MonoBehaviour
             if (unclaimedTipsText != null)
             {
                 unclaimedTipsText.text =
-                    "Unclaimed: Rs. 0";
+                    "Unclaimed: rs. 0";
             }
 
             if (claimTipsButton != null)
@@ -101,7 +101,7 @@ public class CustomerTipUI : MonoBehaviour
         if (unclaimedTipsText != null)
         {
             unclaimedTipsText.text =
-                $"Unclaimed: Rs. {tips:N0}";
+                $"Unclaimed: rs. {tips:N0}";
         }
 
         // =========================

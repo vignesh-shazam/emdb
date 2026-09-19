@@ -158,7 +158,7 @@ public class CareerManager : MonoBehaviour
         Debug.Log(
             $"Career initialized | " +
             $"Job: {careerData.JobType} | " +
-            $"Salary: Rs. {careerData.Salary:N0} | " +
+            $"Salary: rs. {careerData.Salary:N0} | " +
             $"Employed: {careerData.IsEmployed} | " +
             $"Level: {careerLevel} | " +
             $"XP: {currentExperience}/" +
@@ -240,7 +240,7 @@ public class CareerManager : MonoBehaviour
             Debug.LogWarning(
                 $"Salary payment failed | " +
                 $"Month: {currentMonth} | " +
-                $"Salary: Rs. {CurrentSalary:N0}"
+                $"Salary: rs. {CurrentSalary:N0}"
             );
 
             return;
@@ -253,7 +253,7 @@ public class CareerManager : MonoBehaviour
             $"Monthly salary credited | " +
             $"Month: {currentMonth} | " +
             $"Day: {GameTimeManager.Instance.CurrentDay} | " +
-            $"Salary: Rs. {CurrentSalary:N0}"
+            $"Salary: rs. {CurrentSalary:N0}"
         );
     }
 
@@ -372,7 +372,7 @@ public class CareerManager : MonoBehaviour
         Debug.Log(
             $"Career updated | " +
             $"Job: {careerData.JobType} | " +
-            $"Salary: Rs. {careerData.Salary:N0} | " +
+            $"Salary: rs. {careerData.Salary:N0} | " +
             $"Employed: {careerData.IsEmployed}"
         );
     }
@@ -454,7 +454,7 @@ public class CareerManager : MonoBehaviour
             $"Day: {currentDay} | " +
             $"Job: {CurrentJob} | " +
             $"Salary pending until month end: " +
-            $"Rs. {CurrentSalary:N0}"
+            $"rs. {CurrentSalary:N0}"
         );
 
         return true;
@@ -609,9 +609,9 @@ public class CareerManager : MonoBehaviour
         Debug.Log(
             $"Promotion completed | " +
             $"Previous Job: {previousJob} | " +
-            $"Previous Salary: Rs. {previousSalary:N0} | " +
+            $"Previous Salary: rs. {previousSalary:N0} | " +
             $"New Job: {CurrentJob} | " +
-            $"New Salary: Rs. {CurrentSalary:N0}"
+            $"New Salary: rs. {CurrentSalary:N0}"
         );
 
         return true;
@@ -685,9 +685,9 @@ public class CareerManager : MonoBehaviour
         Debug.Log(
             $"Job switch completed | " +
             $"Previous Job: {previousJob} | " +
-            $"Previous Salary: Rs. {previousSalary:N0} | " +
+            $"Previous Salary: rs. {previousSalary:N0} | " +
             $"New Job: {CurrentJob} | " +
-            $"New Salary: Rs. {CurrentSalary:N0}"
+            $"New Salary: rs. {CurrentSalary:N0}"
         );
 
         return true;

@@ -378,7 +378,7 @@ public class DailyRoutineManager : MonoBehaviour
                 $"Daily Routine Finance | " +
                 $"Account: Employee | " +
                 $"Expense: {description} | " +
-                $"Amount: Rs. {amount:N0}"
+                $"Amount: rs. {amount:N0}"
             );
         }
         else
@@ -388,7 +388,7 @@ public class DailyRoutineManager : MonoBehaviour
                 $"Expense failed | " +
                 $"Account: Employee | " +
                 $"Description: {description} | " +
-                $"Amount: Rs. {amount:N0}"
+                $"Amount: rs. {amount:N0}"
             );
         }
     }

@@ -28,10 +28,10 @@ void GetSurfaceNormal_float(texture2D atlas, float textureWidth, float textureHe
 
 	// Read "height field"
 	float4 h = float4(
-		SAMPLE_TEXTURE2D(atlas, SamplerState_Linear_Clamp, uv - delta.xz).a,
-		SAMPLE_TEXTURE2D(atlas, SamplerState_Linear_Clamp, uv + delta.xz).a,
-		SAMPLE_TEXTURE2D(atlas, SamplerState_Linear_Clamp, uv - delta.zy).a,
-		SAMPLE_TEXTURE2D(atlas, SamplerState_Linear_Clamp, uv + delta.zy).a);
+		SAMPLE_TEXTURE2D(atlas, Samplerstate_Linear_Clamp, uv - delta.xz).a,
+		SAMPLE_TEXTURE2D(atlas, Samplerstate_Linear_Clamp, uv + delta.xz).a,
+		SAMPLE_TEXTURE2D(atlas, Samplerstate_Linear_Clamp, uv - delta.zy).a,
+		SAMPLE_TEXTURE2D(atlas, Samplerstate_Linear_Clamp, uv + delta.zy).a);
 
 	bool raisedBevel = _BevelType;
 
@@ -96,7 +96,7 @@ void ScreenSpaceRatio2_float(float4x4 projection, float4 position, float2 object
 
 // UV			: Texture coordinate of the source distance field texture
 // TextureSize	: Size of the source distance field texture
-// Filter		: Enable perspective filter (soften)
+// Filter		: Enable Perspective filter (soften)
 void ScreenSpaceRatio_float(float2 UV, float TextureSize, bool Filter, out float SSR)
 {
 	if(Filter)

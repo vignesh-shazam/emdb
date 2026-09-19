@@ -440,25 +440,25 @@ public class FinanceUI : MonoBehaviour
         if (balanceText != null)
         {
             balanceText.text =
-                $"Balance: Rs. {balance:N0}";
+                $"Balance: rs. {balance:N0}";
         }
 
         if (incomeText != null)
         {
             incomeText.text =
-                $"Income: Rs. {income:N0}";
+                $"Income: rs. {income:N0}";
         }
 
         if (expenseText != null)
         {
             expenseText.text =
-                $"Expense: Rs. {expense:N0}";
+                $"Expense: rs. {expense:N0}";
         }
 
         if (netText != null)
         {
             netText.text =
-                $"Net: Rs. {net:N0}";
+                $"Net: rs. {net:N0}";
         }
     }
 
@@ -515,25 +515,25 @@ public class FinanceUI : MonoBehaviour
         if (balanceText != null)
         {
             balanceText.text =
-                "Balance: Rs. 0";
+                "Balance: rs. 0";
         }
 
         if (incomeText != null)
         {
             incomeText.text =
-                "Income: Rs. 0";
+                "Income: rs. 0";
         }
 
         if (expenseText != null)
         {
             expenseText.text =
-                "Expense: Rs. 0";
+                "Expense: rs. 0";
         }
 
         if (netText != null)
         {
             netText.text =
-                "Net: Rs. 0";
+                "Net: rs. 0";
         }
     }
 }

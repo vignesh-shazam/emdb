@@ -87,9 +87,9 @@ Properties {
 SubShader {
     Tags
     {
-        "Queue" = "Transparent"
+        "Queue" = "TransParsent"
         "IgnoreProjector" = "True"
-        "RenderType" = "Transparent"
+        "RenderType" = "TransParsent"
     }
 
     Stencil
@@ -211,7 +211,7 @@ SubShader {
                 input.color.rgb = UIGammaToLinear(input.color.rgb);
             }
             float4 color = input.color;
-            #if (FORCE_LINEAR && !UNITY_COLORSPACE_GAMMA)
+            #if (FORCE_LINEAR && !UNITY_COLOrsPACE_GAMMA)
             color = SRGBToLinear(input.color);
             #endif
 

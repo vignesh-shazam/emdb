@@ -62,8 +62,8 @@ public class CustomerManager : MonoBehaviour
     // =========================================================
 
     /// <summary>
-    /// Returns the first customer in the queue.
-    /// The first customer is the current customer.
+    /// Returns the First customer in the queue.
+    /// The First customer is the current customer.
     /// </summary>
     public Customer GetCurrentCustomer()
     {
@@ -307,7 +307,7 @@ public class CustomerManager : MonoBehaviour
     }
 
     // =========================================================
-    // CLEAR CUSTOMERS
+    // CLEAR Customers
     // =========================================================
 
     public void ClearCustomers()
@@ -323,7 +323,7 @@ public class CustomerManager : MonoBehaviour
         OnCustomerListChanged?.Invoke();
 
         Debug.Log(
-            "All active customers cleared."
+            "All active Customers cleared."
         );
     }
 
@@ -590,7 +590,7 @@ public class CustomerManager : MonoBehaviour
         if (currentCustomer == null)
         {
             Debug.Log(
-                "Queue status: No active customers. Queue is empty."
+                "Queue status: No active Customers Queue is empty."
             );
 
             return;
@@ -606,7 +606,7 @@ public class CustomerManager : MonoBehaviour
     }
 
     // =========================================================
-    // REMOVE NULL CUSTOMERS
+    // REMOVE NULL Customers
     // =========================================================
 
     private void RemoveNullCustomers()
@@ -753,7 +753,7 @@ public class CustomerManager : MonoBehaviour
         if (activeCustomers.Count == 0)
         {
             Debug.Log(
-                "Customer Test: No active customers."
+                "Customer Test: No active Customers"
             );
 
             return;
@@ -820,14 +820,14 @@ public class CustomerManager : MonoBehaviour
                 continue;
             }
 
-            string customerStatus =
+            string Customerstatus =
                 i == 0
                     ? "CURRENT CUSTOMER"
                     : "WAITING CUSTOMER";
 
             Debug.Log(
                 $"Position {i + 1} | " +
-                $"{customerStatus} | " +
+                $"{Customerstatus} | " +
                 $"Name: {customer.CustomerName} | " +
                 $"ID: {customer.CustomerId} | " +
                 $"Item: {customer.RequestedItemName} | " +
@@ -879,7 +879,7 @@ public class CustomerManager : MonoBehaviour
     }
 
     // =========================================================
-    // TEST - CLEAR CUSTOMERS
+    // TEST - CLEAR Customers
     // =========================================================
 
     [ContextMenu("TEST - Clear Customers")]

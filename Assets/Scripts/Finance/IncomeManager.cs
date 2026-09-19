@@ -95,7 +95,7 @@ public class IncomeManager : MonoBehaviour
                 $"Income rejected | " +
                 $"Account: {accountType} | " +
                 $"Source: {source} | " +
-                $"Amount: Rs. {amount:N0}"
+                $"Amount: rs. {amount:N0}"
             );
 
             return false;
@@ -114,8 +114,8 @@ public class IncomeManager : MonoBehaviour
             $"Income completed | " +
             $"Account: {accountType} | " +
             $"Source: {source} | " +
-            $"Amount: Rs. {amount:N0} | " +
-            $"Balance: Rs. " +
+            $"Amount: rs. {amount:N0} | " +
+            $"Balance: rs. " +
             $"{BankManager.Instance.GetBalance(accountType):N0}"
         );
 

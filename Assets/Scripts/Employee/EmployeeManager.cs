@@ -81,7 +81,7 @@ public class EmployeeManager : MonoBehaviour
         employees.Add(newEmployee);
 
         Debug.Log(
-            $"Employee hired: {employeeName} | Role: {role} | Salary: ₹{monthlySalary}"
+            $"Employee hired: {employeeName} | Role: {role} | Salary: rs{monthlySalary}"
         );
 
         RefreshEmployeeUI();
@@ -135,7 +135,7 @@ public class EmployeeManager : MonoBehaviour
                 $"ID: {employee.EmployeeId} | " +
                 $"Name: {employee.EmployeeName} | " +
                 $"Role: {employee.Role} | " +
-                $"Salary: ₹{employee.MonthlySalary} | " +
+                $"Salary: rs{employee.MonthlySalary} | " +
                 $"Productivity: {employee.Productivity}"
             );
         }

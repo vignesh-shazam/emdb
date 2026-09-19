@@ -206,7 +206,7 @@ public class BillingManager : MonoBehaviour
             Debug.LogWarning(
                 $"Billing failed: Invalid selling price. " +
                 $"Item: {shopItem.ItemName} | " +
-                $"Price: Rs. {unitPrice:N0}"
+                $"Price: rs. {unitPrice:N0}"
             );
 
             return false;
@@ -245,8 +245,8 @@ public class BillingManager : MonoBehaviour
             $"Customer: {customer.CustomerName} | " +
             $"Item: {shopItem.ItemName} | " +
             $"Quantity: {quantity} | " +
-            $"Unit Price: Rs. {unitPrice:N0} | " +
-            $"Total: Rs. {totalAmount:N0}"
+            $"Unit Price: rs. {unitPrice:N0} | " +
+            $"Total: rs. {totalAmount:N0}"
         );
 
         // =====================================================
@@ -397,8 +397,8 @@ public class BillingManager : MonoBehaviour
             $"CURRENT BILL | " +
             $"Customer ID: {currentCustomerId} | " +
             $"Quantity: {currentQuantity} | " +
-            $"Unit Price: Rs. {currentUnitPrice:N0} | " +
-            $"Total: Rs. {currentTotalAmount:N0}"
+            $"Unit Price: rs. {currentUnitPrice:N0} | " +
+            $"Total: rs. {currentTotalAmount:N0}"
         );
     }
 

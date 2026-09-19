@@ -173,7 +173,7 @@ public class PaymentUI : MonoBehaviour
     }
 
     // =========================================================
-    // REGISTER BUTTON LISTENERS
+    // REGISTER BUTTON Listeners
     // =========================================================
 
     private void RegisterButtonListeners()
@@ -210,7 +210,7 @@ public class PaymentUI : MonoBehaviour
     }
 
     // =========================================================
-    // REMOVE BUTTON LISTENERS
+    // REMOVE BUTTON Listeners
     // =========================================================
 
     private void RemoveButtonListeners()
@@ -321,7 +321,7 @@ public class PaymentUI : MonoBehaviour
 
         Debug.Log(
             $"Payment panel opened successfully | " +
-            $"Amount: ₹{BillingManager.Instance.CurrentTotalAmount:N0}"
+            $"Amount: rs{BillingManager.Instance.CurrentTotalAmount:N0}"
         );
     }
 
@@ -394,7 +394,7 @@ public class PaymentUI : MonoBehaviour
         {
             if (amountText != null)
             {
-                amountText.text = "Amount: ₹0";
+                amountText.text = "Amount: rs0";
             }
 
             if (paymentMethodText != null)
@@ -411,7 +411,7 @@ public class PaymentUI : MonoBehaviour
         if (amountText != null)
         {
             amountText.text =
-                $"Amount: ₹{BillingManager.Instance.CurrentTotalAmount:N0}";
+                $"Amount: rs{BillingManager.Instance.CurrentTotalAmount:N0}";
         }
 
         if (paymentMethodText != null)
@@ -569,7 +569,7 @@ public class PaymentUI : MonoBehaviour
             PaymentManager.PaymentMethod.None)
         {
             Debug.LogWarning(
-                "PaymentUI: Please select a payment method first."
+                "PaymentUI: Please select a payment method First."
             );
 
             return;

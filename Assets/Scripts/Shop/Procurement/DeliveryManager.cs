@@ -319,7 +319,7 @@ public class DeliveryManager : MonoBehaviour
     }
 
     // --------------------------------------------------
-    // DISPLAY HELPERS
+    // DISPLAY HELPErs
     // --------------------------------------------------
 
     public string GetRemainingTimeDisplay()

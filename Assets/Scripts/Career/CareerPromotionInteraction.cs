@@ -34,7 +34,7 @@ public class CareerPromotionInteraction : MonoBehaviour, IInteractable
         Debug.Log(
             $"Career promotion accepted | " +
             $"Job: {CareerManager.Instance.CurrentJob} | " +
-            $"Salary: Rs. {CareerManager.Instance.CurrentSalary:N0}"
+            $"Salary: rs. {CareerManager.Instance.CurrentSalary:N0}"
         );
     }
 }
