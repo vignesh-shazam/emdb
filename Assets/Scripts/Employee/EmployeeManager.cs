@@ -8,26 +8,27 @@ public class EmployeeManager : MonoBehaviour
     [Header("Employee Settings")]
     [SerializeField] private int maximumEmployees = 10;
 
-    [Header("Employee ID")]
-    [SerializeField] private int nextEmployeeNumber = 1;
-
-    [Header("Employees")]
+    [Header("Employee Data")]
     [SerializeField]
     private List<Employee> employees =
         new List<Employee>();
 
     [Header("Employee UI")]
     [SerializeField] private Transform employeeList;
-    [SerializeField] private EmployeeCardUI employeeCardPrefab;
+    [SerializeField] private GameObject employeeCardPrefab;
 
-    public IReadOnlyList<Employee> Employees =>
+    private int nextEmployeeNumber = 1;
+
+    // ==================================================
+    // PUBLIC PROPERTIES
+    // ==================================================
+
+    public List<Employee> Employees =>
         employees;
 
-    // Total employee records, including fired employees.
     public int EmployeeCount =>
         employees.Count;
 
-    // Currently hired employees only.
     public int ActiveEmployeeCount
     {
         get
@@ -36,8 +37,7 @@ public class EmployeeManager : MonoBehaviour
 
             foreach (Employee employee in employees)
             {
-                if (employee != null &&
-                    employee.IsHired)
+                if (employee != null && employee.IsHired)
                 {
                     count++;
                 }
@@ -50,61 +50,35 @@ public class EmployeeManager : MonoBehaviour
     public int MaximumEmployees =>
         maximumEmployees;
 
+    // ==================================================
+    // UNITY
+    // ==================================================
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
         {
-            Debug.LogWarning(
-                "Duplicate EmployeeManager found. " +
-                "Destroying duplicate."
-            );
-
             Destroy(gameObject);
             return;
         }
 
         Instance = this;
-
-        UpdateNextEmployeeNumber();
-
-        Debug.Log(
-            "EmployeeManager initialized successfully."
-        );
     }
 
-    private void OnDestroy()
-    {
-        if (Instance == this)
-        {
-            Instance = null;
-        }
-    }
-
-    // =========================================================
+    // ==================================================
     // HIRE EMPLOYEE
-    // =========================================================
+    // ==================================================
 
     public bool HireEmployee(
         string employeeId,
         string employeeName,
         EmployeeRole role,
-        int monthlySalary)
+        int salary)
     {
-        // Maximum limit applies only to currently hired employees.
-        if (ActiveEmployeeCount >= maximumEmployees)
-        {
-            Debug.LogWarning(
-                "Cannot hire employee. " +
-                "Maximum active employee limit reached."
-            );
-
-            return false;
-        }
-
         if (string.IsNullOrWhiteSpace(employeeId))
         {
             Debug.LogWarning(
-                "Cannot hire employee. Employee ID is empty."
+                "EmployeeManager: Employee ID is empty."
             );
 
             return false;
@@ -113,7 +87,16 @@ public class EmployeeManager : MonoBehaviour
         if (string.IsNullOrWhiteSpace(employeeName))
         {
             Debug.LogWarning(
-                "Cannot hire employee. Employee name is empty."
+                "EmployeeManager: Employee name is empty."
+            );
+
+            return false;
+        }
+
+        if (ActiveEmployeeCount >= maximumEmployees)
+        {
+            Debug.LogWarning(
+                "EmployeeManager: Maximum employee limit reached."
             );
 
             return false;
@@ -122,76 +105,107 @@ public class EmployeeManager : MonoBehaviour
         if (EmployeeIdExists(employeeId))
         {
             Debug.LogWarning(
-                $"Employee ID already exists: {employeeId}"
+                $"EmployeeManager: Employee ID {employeeId} already exists."
             );
 
             return false;
         }
 
-        Employee newEmployee =
+        Employee employee =
             new Employee(
                 employeeId,
                 employeeName,
                 role,
-                monthlySalary
+                salary
             );
 
-        employees.Add(newEmployee);
+        employees.Add(employee);
+
+        // ==================================================
+        // CREATE PAYROLL RECORD
+        // ==================================================
+
+        if (EmployeePayrollManager.Instance != null)
+        {
+            EmployeePayrollManager.Instance
+                .CreatePayrollRecord(employee);
+        }
+
+        // ==================================================
+        // CREATE PERFORMANCE RECORD
+        // ==================================================
+
+        if (EmployeePerformanceManager.Instance != null)
+        {
+            EmployeePerformanceManager.Instance
+                .CreatePerformanceRecord(employee);
+        }
 
         Debug.Log(
-            $"Employee hired: {employeeName} | " +
-            $"ID: {employeeId} | " +
-            $"Role: {role} | " +
-            $"Salary: ₹{monthlySalary:N0}"
+            $"Employee hired: {employee.EmployeeId} - " +
+            $"{employee.EmployeeName} - " +
+            $"{employee.Role} - " +
+            $"Salary: ₹{employee.MonthlySalary}"
         );
-
-        CreatePayrollRecord(newEmployee);
 
         RefreshEmployeeUI();
 
         return true;
     }
 
-    // =========================================================
-    // CREATE PAYROLL RECORD
-    // =========================================================
+    // ==================================================
+    // OPTIONAL HIRE OVERLOAD
+    // ==================================================
+    // Allows other systems to hire an employee without
+    // manually generating an ID.
 
-    private void CreatePayrollRecord(
-        Employee employee)
+    public Employee HireEmployee(
+        string employeeName,
+        EmployeeRole role)
     {
-        if (EmployeePayrollManager.Instance == null)
+        if (string.IsNullOrWhiteSpace(employeeName))
         {
             Debug.LogWarning(
-                "EmployeePayrollManager instance not found. " +
-                "Payroll record was not created."
+                "EmployeeManager: Employee name is empty."
             );
 
-            return;
+            return null;
         }
 
-        bool created =
-            EmployeePayrollManager.Instance
-                .CreatePayrollRecord(employee);
-
-        if (created)
-        {
-            Debug.Log(
-                $"Payroll record created for employee: " +
-                $"{employee.EmployeeName}"
-            );
-        }
-        else
+        if (ActiveEmployeeCount >= maximumEmployees)
         {
             Debug.LogWarning(
-                $"Failed to create payroll record for: " +
-                $"{employee.EmployeeName}"
+                "EmployeeManager: Maximum employee limit reached."
             );
+
+            return null;
         }
+
+        string employeeId =
+            GetNextEmployeeId();
+
+        int salary =
+            GetSalaryForRole(role);
+
+        bool hired =
+            HireEmployee(
+                employeeId,
+                employeeName,
+                role,
+                salary
+            );
+
+        if (!hired)
+        {
+            return null;
+        }
+
+        return FindEmployee(employeeId);
     }
 
-    // =========================================================
+    // ==================================================
     // FIRE EMPLOYEE
-    // =========================================================
+    // ==================================================
 
     public bool FireEmployee(
         string employeeId)
@@ -202,7 +216,7 @@ public class EmployeeManager : MonoBehaviour
         if (employee == null)
         {
             Debug.LogWarning(
-                $"Employee not found: {employeeId}"
+                $"EmployeeManager: Employee {employeeId} not found."
             );
 
             return false;
@@ -211,48 +225,31 @@ public class EmployeeManager : MonoBehaviour
         if (!employee.IsHired)
         {
             Debug.LogWarning(
-                $"Employee is already fired: " +
-                $"{employee.EmployeeName}"
+                $"Employee {employeeId} is already inactive."
             );
 
             return false;
         }
 
-        // Record leaving date BEFORE changing
-        // the employee status.
+        // ==================================================
+        // RECORD PAYROLL END DATE
+        // ==================================================
+
         if (EmployeePayrollManager.Instance != null)
         {
-            bool leavingDateRecorded =
-                EmployeePayrollManager.Instance
-                    .RecordEmployeeLeavingDate(
-                        employee.EmployeeId
-                    );
-
-            if (!leavingDateRecorded)
-            {
-                Debug.LogWarning(
-                    $"Employee leaving date could not be recorded: " +
-                    $"{employee.EmployeeId}"
-                );
-            }
-        }
-        else
-        {
-            Debug.LogWarning(
-                "EmployeePayrollManager instance not found. " +
-                "Leaving date was not recorded."
-            );
+            EmployeePayrollManager.Instance
+                .RecordEmployeeLeavingDate(employeeId);
         }
 
-        // IMPORTANT:
-        // Do NOT remove the employee.
-        // Fired employees remain in employee history.
+        // ==================================================
+        // UPDATE EMPLOYMENT STATUS
+        // ==================================================
+
         employee.SetHiringStatus(false);
 
         Debug.Log(
-            $"Employee fired: " +
-            $"{employee.EmployeeName} | " +
-            $"ID: {employee.EmployeeId}"
+            $"Employee fired: {employeeId} - " +
+            $"{employee.EmployeeName}"
         );
 
         RefreshEmployeeUI();
@@ -260,9 +257,9 @@ public class EmployeeManager : MonoBehaviour
         return true;
     }
 
-    // =========================================================
+    // ==================================================
     // FIND EMPLOYEE
-    // =========================================================
+    // ==================================================
 
     public Employee FindEmployee(
         string employeeId)
@@ -272,16 +269,21 @@ public class EmployeeManager : MonoBehaviour
             return null;
         }
 
-        return employees.Find(
-            employee =>
-                employee != null &&
-                employee.EmployeeId == employeeId
-        );
+        foreach (Employee employee in employees)
+        {
+            if (employee != null &&
+                employee.EmployeeId == employeeId)
+            {
+                return employee;
+            }
+        }
+
+        return null;
     }
 
-    // =========================================================
-    // EMPLOYEE STATUS
-    // =========================================================
+    // ==================================================
+    // CHECK EMPLOYEE STATUS
+    // ==================================================
 
     public bool IsEmployeeHired(
         string employeeId)
@@ -293,35 +295,54 @@ public class EmployeeManager : MonoBehaviour
                employee.IsHired;
     }
 
+    // ==================================================
+    // CHECK EMPLOYEE ID
+    // ==================================================
+
     public bool EmployeeIdExists(
         string employeeId)
     {
         return FindEmployee(employeeId) != null;
     }
 
-    // =========================================================
-    // EMPLOYEE DISPLAY
-    // =========================================================
+    // ==================================================
+    // GET NEXT EMPLOYEE ID
+    // ==================================================
 
+    public string GetNextEmployeeId()
+    {
+        string employeeId;
+
+        do
+        {
+            employeeId =
+                $"EMP{nextEmployeeNumber:000}";
+
+            nextEmployeeNumber++;
+
+        } while (EmployeeIdExists(employeeId));
+
+        return employeeId;
+    }
+
+    // ==================================================
+    // DISPLAY ALL EMPLOYEES
+    // ==================================================
+
+    [ContextMenu("Display All Employees")]
     public void DisplayAllEmployees()
     {
         if (employees.Count == 0)
         {
             Debug.Log(
-                "No employees have been added."
+                "EmployeeManager: No employees found."
             );
 
             return;
         }
 
         Debug.Log(
-            $"Total Employee Records: " +
-            $"{employees.Count}"
-        );
-
-        Debug.Log(
-            $"Active Employees: " +
-            $"{ActiveEmployeeCount}"
+            $"========== EMPLOYEES ({employees.Count}) =========="
         );
 
         foreach (Employee employee in employees)
@@ -335,41 +356,40 @@ public class EmployeeManager : MonoBehaviour
                 $"ID: {employee.EmployeeId} | " +
                 $"Name: {employee.EmployeeName} | " +
                 $"Role: {employee.Role} | " +
-                $"Salary: ₹{employee.MonthlySalary:N0} | " +
-                $"Status: " +
-                $"{(employee.IsHired ? "Hired" : "Fired")}"
+                $"Salary: ₹{employee.MonthlySalary} | " +
+                $"Status: {(employee.IsHired ? "Hired" : "Inactive")} | " +
+                $"Productivity: {employee.Productivity:P0}"
             );
         }
+
+        Debug.Log(
+            "=============================================="
+        );
     }
 
-    // =========================================================
-    // EMPLOYEE UI
-    // =========================================================
+    // ==================================================
+    // REFRESH EMPLOYEE UI
+    // ==================================================
 
     public void RefreshEmployeeUI()
     {
-        if (employeeList == null)
+        if (employeeList == null ||
+            employeeCardPrefab == null)
         {
-            Debug.LogWarning(
-                "EmployeeManager: Employee List reference " +
-                "is not assigned."
-            );
-
             return;
         }
 
-        if (employeeCardPrefab == null)
+        // Remove existing cards
+        for (int i = employeeList.childCount - 1;
+             i >= 0;
+             i--)
         {
-            Debug.LogWarning(
-                "EmployeeManager: Employee Card Prefab reference " +
-                "is not assigned."
+            Destroy(
+                employeeList.GetChild(i).gameObject
             );
-
-            return;
         }
 
-        ClearEmployeeCards();
-
+        // Create employee cards
         foreach (Employee employee in employees)
         {
             if (employee == null)
@@ -377,156 +397,120 @@ public class EmployeeManager : MonoBehaviour
                 continue;
             }
 
-            EmployeeCardUI employeeCard =
+            GameObject card =
                 Instantiate(
                     employeeCardPrefab,
                     employeeList
                 );
 
-            employeeCard.SetEmployee(
-                employee
-            );
-        }
+            EmployeeCardUI cardUI =
+                card.GetComponent<EmployeeCardUI>();
 
-        Debug.Log(
-            $"Employee UI refreshed. " +
-            $"Cards displayed: {employees.Count}"
-        );
+            if (cardUI != null)
+            {
+                cardUI.SetEmployee(employee);
+            }
+        }
     }
 
-    private void ClearEmployeeCards()
+    // ==================================================
+    // GET SALARY BY ROLE
+    // ==================================================
+
+    private int GetSalaryForRole(
+        EmployeeRole role)
     {
-        if (employeeList == null)
+        switch (role)
         {
-            return;
-        }
+            case EmployeeRole.Cashier:
+                return 15000;
 
-        for (
-            int i = employeeList.childCount - 1;
-            i >= 0;
-            i--
-        )
-        {
-            Destroy(
-                employeeList.GetChild(i).gameObject
-            );
+            case EmployeeRole.ShopAssistant:
+                return 12000;
+
+            case EmployeeRole.StockManager:
+                return 20000;
+
+            case EmployeeRole.SecurityGuard:
+                return 13000;
+
+            case EmployeeRole.Cleaner:
+                return 10000;
+
+            default:
+                return 0;
         }
     }
 
-    // =========================================================
-    // EMPLOYEE ID GENERATION
-    // =========================================================
+    // ==================================================
+    // TEST - HIRE CASHIER
+    // ==================================================
 
-    private string GenerateEmployeeId()
+    [ContextMenu("Test Hire Cashier")]
+    private void TestHireCashier()
     {
         string employeeId =
-            $"EMP{nextEmployeeNumber:000}";
+            GetNextEmployeeId();
 
-        while (EmployeeIdExists(employeeId))
-        {
-            nextEmployeeNumber++;
-
-            employeeId =
-                $"EMP{nextEmployeeNumber:000}";
-        }
-
-        return employeeId;
-    }
-
-    private void UpdateNextEmployeeNumber()
-    {
-        int highestNumber = 0;
-
-        foreach (Employee employee in employees)
-        {
-            if (employee == null ||
-                string.IsNullOrWhiteSpace(
-                    employee.EmployeeId))
-            {
-                continue;
-            }
-
-            if (!employee.EmployeeId.StartsWith("EMP"))
-            {
-                continue;
-            }
-
-            string numberText =
-                employee.EmployeeId.Substring(3);
-
-            if (int.TryParse(
-                numberText,
-                out int number))
-            {
-                if (number > highestNumber)
-                {
-                    highestNumber = number;
-                }
-            }
-        }
-
-        nextEmployeeNumber =
-            Mathf.Max(
-                nextEmployeeNumber,
-                highestNumber + 1
-            );
-    }
-
-    public string GetNextEmployeeId()
-    {
-        return GenerateEmployeeId();
-    }
-
-    // =========================================================
-    // TEST METHODS
-    // =========================================================
-
-    [ContextMenu("TEST - Hire Sample Employee 1")]
-    private void TestHireSampleEmployee1()
-    {
         HireEmployee(
-            GetNextEmployeeId(),
-            "Vignesh",
+            employeeId,
+            "Test Cashier",
             EmployeeRole.Cashier,
             15000
         );
     }
 
-    [ContextMenu("TEST - Hire Sample Employee 2")]
-    private void TestHireSampleEmployee2()
+    // ==================================================
+    // TEST - HIRE SHOP ASSISTANT
+    // ==================================================
+
+    [ContextMenu("Test Hire Shop Assistant")]
+    private void TestHireShopAssistant()
     {
+        string employeeId =
+            GetNextEmployeeId();
+
         HireEmployee(
-            GetNextEmployeeId(),
-            "Arun",
+            employeeId,
+            "Test Assistant",
             EmployeeRole.ShopAssistant,
             12000
         );
     }
 
-    [ContextMenu("TEST - Hire Sample Employee 3")]
-    private void TestHireSampleEmployee3()
+    // ==================================================
+    // TEST - HIRE STOCK MANAGER
+    // ==================================================
+
+    [ContextMenu("Test Hire Stock Manager")]
+    private void TestHireStockManager()
     {
+        string employeeId =
+            GetNextEmployeeId();
+
         HireEmployee(
-            GetNextEmployeeId(),
-            "Ravi",
-            EmployeeRole.SecurityGuard,
-            13000
+            employeeId,
+            "Test Stock",
+            EmployeeRole.StockManager,
+            20000
         );
     }
 
-    [ContextMenu("TEST - Display All Employees")]
-    private void TestDisplayAllEmployees()
-    {
-        DisplayAllEmployees();
-    }
+    // ==================================================
+    // TEST - FIRE EMP001
+    // ==================================================
 
-    [ContextMenu("TEST - Fire EMP001")]
-    private void TestFireEmployee()
+    [ContextMenu("Test Fire EMP001")]
+    private void TestFireEMP001()
     {
         FireEmployee("EMP001");
     }
 
-    [ContextMenu("TEST - Refresh Employee UI")]
+    // ==================================================
+    // TEST - REFRESH UI
+    // ==================================================
+
+    [ContextMenu("Refresh Employee UI")]
     private void TestRefreshEmployeeUI()
     {
         RefreshEmployeeUI();
