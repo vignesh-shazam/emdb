@@ -90,7 +90,7 @@ SubShader {
   {
 		"Queue"="Overlay"
 		"IgnoreProjector"="True"
-		"RenderType"="TransParsent"
+		"RenderType"="Transparent"
 	}
 
 	Stencil

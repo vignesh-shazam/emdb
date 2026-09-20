@@ -87,9 +87,9 @@ Properties {
 SubShader {
     Tags
     {
-        "Queue" = "TransParsent"
+        "Queue" = "Transparent"
         "IgnoreProjector" = "True"
-        "RenderType" = "TransParsent"
+        "RenderType" = "Transparent"
     }
 
     Stencil

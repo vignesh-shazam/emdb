@@ -67,7 +67,7 @@ Properties {
 
 SubShader {
 
-	Tags { "Queue"="TransParsent" "IgnoreProjector"="True" "RenderType"="TransParsent" }
+	Tags { "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent" }
 
 	LOD 300
 	Cull [_CullMode]
