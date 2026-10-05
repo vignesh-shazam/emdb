@@ -20,8 +20,11 @@ public class EmployeeHiringUI : MonoBehaviour
     [SerializeField] private int cashierSalary = 15000;
     [SerializeField] private int shopAssistantSalary = 12000;
     [SerializeField] private int stockManagerSalary = 13000;
-    [SerializeField] private int securityGuardSalary = 11000;
+    [SerializeField] private int securityGuardSalary = 13000;
     [SerializeField] private int cleanerSalary = 10000;
+
+    [Header("Employee Name Settings")]
+    [SerializeField] private int maximumNameCharacters = 15;
 
     private void Start()
     {
@@ -52,8 +55,13 @@ public class EmployeeHiringUI : MonoBehaviour
             return;
         }
 
-        employeeRoleDropdown.onValueChanged.RemoveListener(OnRoleChanged);
-        employeeRoleDropdown.onValueChanged.AddListener(OnRoleChanged);
+        employeeRoleDropdown.onValueChanged.RemoveListener(
+            OnRoleChanged
+        );
+
+        employeeRoleDropdown.onValueChanged.AddListener(
+            OnRoleChanged
+        );
     }
 
     private void SetupNameInput()
@@ -67,11 +75,25 @@ public class EmployeeHiringUI : MonoBehaviour
             return;
         }
 
-        employeeNameInput.onValueChanged.RemoveListener(OnNameChanged);
-        employeeNameInput.onValueChanged.AddListener(OnNameChanged);
+        // Limit employee name to 15 characters.
+        employeeNameInput.characterLimit =
+            maximumNameCharacters;
 
-        employeeNameInput.onValueChanged.RemoveListener(ValidateEmployeeName);
-        employeeNameInput.onValueChanged.AddListener(ValidateEmployeeName);
+        employeeNameInput.onValueChanged.RemoveListener(
+            OnNameChanged
+        );
+
+        employeeNameInput.onValueChanged.AddListener(
+            OnNameChanged
+        );
+
+        employeeNameInput.onValueChanged.RemoveListener(
+            ValidateEmployeeName
+        );
+
+        employeeNameInput.onValueChanged.AddListener(
+            ValidateEmployeeName
+        );
     }
 
     private void OnNameChanged(string value)
@@ -90,12 +112,13 @@ public class EmployeeHiringUI : MonoBehaviour
 
         foreach (char character in value)
         {
-            // Allow letters
+            // Allow letters.
             if (char.IsLetter(character))
             {
                 validName += character;
             }
-            // Allow spaces
+
+            // Allow spaces.
             else if (character == ' ')
             {
                 if (validName.Length > 0)
@@ -103,16 +126,17 @@ public class EmployeeHiringUI : MonoBehaviour
                     validName += character;
                 }
             }
-            // Allow dot
+
+            // Allow dots.
             else if (character == '.')
             {
-                // Dot cannot be the first character
+                // Dot cannot be the first character.
                 if (validName.Length == 0)
                 {
                     continue;
                 }
 
-                // Do not allow consecutive dots
+                // Do not allow consecutive dots.
                 if (validName.EndsWith("."))
                 {
                     continue;
@@ -120,6 +144,16 @@ public class EmployeeHiringUI : MonoBehaviour
 
                 validName += character;
             }
+        }
+
+        // Extra safety in case the text is changed programmatically.
+        if (validName.Length > maximumNameCharacters)
+        {
+            validName =
+                validName.Substring(
+                    0,
+                    maximumNameCharacters
+                );
         }
 
         if (employeeNameInput.text != validName)
@@ -179,7 +213,9 @@ public class EmployeeHiringUI : MonoBehaviour
 
         if (employeeRoleDropdown.options.Count == 0)
         {
-            employeeSalaryText.text = "Select a role";
+            employeeSalaryText.text =
+                "Select a role";
+
             return;
         }
 
@@ -188,14 +224,16 @@ public class EmployeeHiringUI : MonoBehaviour
                 employeeRoleDropdown.value
             ].text;
 
-        int salary =
-            GetSalaryForRole(selectedRole);
-
         if (selectedRole == "Select Role")
         {
-            employeeSalaryText.text = "Select a role";
+            employeeSalaryText.text =
+                "Select a role";
+
             return;
         }
+
+        int salary =
+            GetSalaryForRole(selectedRole);
 
         employeeSalaryText.text =
             $"RS.{salary:N0} / Month";
@@ -293,7 +331,7 @@ public class EmployeeHiringUI : MonoBehaviour
         string employeeName =
             employeeNameInput.text.Trim();
 
-        // Basic name validation
+        // Basic name validation.
         if (string.IsNullOrWhiteSpace(employeeName))
         {
             Debug.LogWarning(
@@ -304,7 +342,19 @@ public class EmployeeHiringUI : MonoBehaviour
             return;
         }
 
-        // Name cannot start with a dot
+        // Maximum length validation.
+        if (employeeName.Length >
+            maximumNameCharacters)
+        {
+            Debug.LogWarning(
+                $"Employee name cannot exceed " +
+                $"{maximumNameCharacters} characters."
+            );
+
+            return;
+        }
+
+        // Name cannot start with a dot.
         if (employeeName.StartsWith("."))
         {
             Debug.LogWarning(
@@ -314,7 +364,7 @@ public class EmployeeHiringUI : MonoBehaviour
             return;
         }
 
-        // Name cannot end with a dot
+        // Name cannot end with a dot.
         if (employeeName.EndsWith("."))
         {
             Debug.LogWarning(
@@ -324,7 +374,7 @@ public class EmployeeHiringUI : MonoBehaviour
             return;
         }
 
-        // Name cannot contain consecutive dots
+        // Name cannot contain consecutive dots.
         if (employeeName.Contains(".."))
         {
             Debug.LogWarning(
@@ -334,7 +384,7 @@ public class EmployeeHiringUI : MonoBehaviour
             return;
         }
 
-        // Role validation
+        // Role validation.
         if (employeeRoleDropdown.value == 0)
         {
             Debug.LogWarning(
@@ -368,6 +418,15 @@ public class EmployeeHiringUI : MonoBehaviour
         string employeeId =
             GenerateEmployeeId();
 
+        if (string.IsNullOrEmpty(employeeId))
+        {
+            Debug.LogError(
+                "Employee ID generation failed."
+            );
+
+            return;
+        }
+
         bool hired =
             EmployeeManager.Instance.HireEmployee(
                 employeeId,
@@ -386,8 +445,11 @@ public class EmployeeHiringUI : MonoBehaviour
         }
 
         Debug.Log(
-            $"Employee hiring completed: {employeeName} | " +
-            $"Role: {role} | Salary: RS.{salary}"
+            $"Employee hiring completed: " +
+            $"{employeeName} | " +
+            $"ID: {employeeId} | " +
+            $"Role: {role} | " +
+            $"Salary: RS.{salary:N0}"
         );
 
         ClearForm();
@@ -421,23 +483,16 @@ public class EmployeeHiringUI : MonoBehaviour
 
     private string GenerateEmployeeId()
     {
-        int employeeNumber =
-            EmployeeManager.Instance.EmployeeCount + 1;
-
-        string employeeId =
-            $"EMP_{employeeNumber:000}";
-
-        while (
-            EmployeeManager.Instance.IsEmployeeHired(
-                employeeId))
+        if (EmployeeManager.Instance == null)
         {
-            employeeNumber++;
+            Debug.LogError(
+                "EmployeeHiringUI: EmployeeManager instance not found."
+            );
 
-            employeeId =
-                $"EMP_{employeeNumber:000}";
+            return string.Empty;
         }
 
-        return employeeId;
+        return EmployeeManager.Instance.GetNextEmployeeId();
     }
 
     private void ClearForm()
@@ -450,6 +505,7 @@ public class EmployeeHiringUI : MonoBehaviour
         if (employeeRoleDropdown != null)
         {
             employeeRoleDropdown.value = 0;
+
             employeeRoleDropdown.RefreshShownValue();
         }
 
